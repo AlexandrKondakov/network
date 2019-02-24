@@ -1,0 +1,46 @@
+/*reset css*/
+html, body, div, span, object, iframe, section,
+h1, h2, h3, h4, h5, h6, p, a, address, code, 
+img, strong, sub, var, b, i, dl, dt, dd, ol, 
+ul, li, form, legend, table, tbody, thead, tr, 
+th, td, article, aside, canvas,  embed, footer, 
+header, hgroup, menu, nav, audio, video,
+input, label, select, button, textarea {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: middle;
+	box-sizing: border-box;
+}
+ol, ul { list-style: none; }
+
+@import '../vars.scss';
+
+.App{
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: sans-serif;
+  letter-spacing: .2px;
+  color: $font-black;
+
+  .auth{
+  	margin-top: 30px;
+
+  	&-form{
+    	margin-top: 20px;
+    }
+    &__message{
+			text-align: center;
+			height: 20px;
+			letter-spacing: .3px;
+
+			&-error{
+				color: $error-color;
+		   		 font-weight: bold;
+			}
+    }
+  }
+}

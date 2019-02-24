@@ -1,0 +1,47 @@
+@import '../../vars.scss';
+
+.auth{
+	&-form{
+		border: 1px solid $border-grey;
+		border-radius: 7px;
+	    width: 320px;
+	    margin: 0 auto;
+	    padding: 20px 0;
+	    text-align: center;
+	    font-size: $font-size-normal;
+    	&__caption{
+			margin-bottom: 5px;
+			font-size: $font-size-big;
+		    font-weight: bold;
+		}
+		&__error{
+			height: 17px;
+			color: $error-color;
+		}
+	}
+	input{
+		background: $input-green;
+	    height: 30px;
+   		width: 200px;
+	    border-radius: 3px;	
+	    margin-bottom: 20px;
+	    padding: 0 5px;
+	}
+	button{
+		width: 120px;
+		height: 30px;
+		background: $button-green;
+	    color: white;
+	    cursor: pointer;
+	    outline: none;
+        border-radius: 3px;
+        letter-spacing: .3px;
+        &:disabled{
+        	background: $button-disabled;
+        	cursor: default;
+    	    opacity: .8;
+        }
+	}
+}
+
+
