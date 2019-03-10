@@ -1,15 +1,16 @@
-export const SET_NAME = 'SET_NAME'
+export const SET_ISLOGGEDIN = 'SET_ISLOGGEDIN'
+export const SET_USERDATA = 'SET_USERDATA'
 
-export function setName(name) {
+export function setIsLoggedIn(isLoggedIn) {
   return {
-    type: SET_NAME,
-    payload: name,
+    type: SET_ISLOGGEDIN,
+    payload: isLoggedIn,
   }
 }
 
-// export function setNumber(number) {
-//   return {
-//     type: SET_NUMBER,
-//     payload: number,
-//   }
-// }
+export function setUserData(userData) {
+  return {
+    type: SET_USERDATA,
+    payload: userData,
+  }
+}

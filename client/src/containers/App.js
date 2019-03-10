@@ -1,23 +1,21 @@
 import React, { Component } from 'react'
-import { connect } from 'react-redux' //для связки стора с приложухой
+import { connect } from 'react-redux'
 import { UserPage } from '../components/userPage'
 import { Auth } from '../components/auth'
-// actions
-import { setName } from '../actions/UserPageActions'
+
+import { setIsLoggedIn, setUserData } from '../actions/UserPageActions'
 
 import './App.scss'
 
 class App extends Component {
   state = {
-    isLoggedIn: Boolean,
-    userData: null,
     disableSubmitButtons: false,
     responseWithError: false
   }
 
   componentDidMount() {
     this.callMainApi()
-      .then(res => this.setState({ isLoggedIn: res.isLoggedIn }))
+      .then(res => this.props.setIsLoggedInAction(res.isLoggedIn))
       .catch(err => console.log(err))
   }
 
@@ -39,31 +37,35 @@ class App extends Component {
     })
 
     const body = await response.json()
+
+    this.props.setUserDataAction(body.userData)
+
+    this.props.setIsLoggedInAction(body.isLoggedIn ? body.isLoggedIn : false)
+
     this.setState(
       {
-        userData: body.userData, 
-        isLoggedIn: body.isLoggedIn ? body.isLoggedIn : false, disableSubmitButtons: false,
+        disableSubmitButtons: false,
         responseWithError: body.error ? true : false
       }
     )
   }
 
   render() {
-    const { userPage, setNameAction } = this.props
+    const { userPage, setIsLoggedInAction, setUserDataAction } = this.props
 
     return (
       <div className="App">
-        {this.state.isLoggedIn ?
+        {userPage.isLoggedIn ?
 
           ( <div className="user-page">
-              <UserPage name={userPage.name} setName={setNameAction} />
+              <UserPage name={ userPage.userData.name } />
             </div>
           ) :
 
           ( <div className="auth">              
               <div className={this.state.responseWithError ? 'auth__message auth__message-error' : 'auth__message'}>
-                { this.state.userData && this.state.userData.message ? 
-                  this.state.userData.message : 
+                { userPage.userData && userPage.userData.message ? 
+                  userPage.userData.message : 
                   'Авторизуйтесь, или зарегистрируйтесь'}
               </div>
               <Auth 
@@ -89,17 +91,18 @@ class App extends Component {
     )
   }
 }
-// пробрасывает данные redux в пропсы приложения
+
 const mapStateToProps = store => {
   return {
     userPage: store.userPage
   }
 }
-// для диспетчеризации экшнов
+
 const mapDispatchToProps = dispatch => ({
-    setNameAction: name => dispatch(setName(name))
+    setIsLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
+    setUserDataAction: userData => dispatch(setUserData(userData))
 })
-// подключение функции в приложение
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps
