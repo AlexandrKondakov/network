@@ -3,36 +3,30 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 
-const user = require('./actions/user')
+const dbUser = require('./config').dbUser
+const mongoose = require('mongoose')
+const db = mongoose.connection
+
+const user = require('./actions/user/auth')
+
+mongoose.connect(dbUser, { useNewUrlParser: true })
+db.on('error', console.error.bind(console, 'MongoDB connection error: '))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.get('/api/', (req, res) => {
-  res.send({ isLoggedIn: false })
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000')
+  res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization')
+
+  user.checkToken(app)
+  next()
 })
 
-app.post('/api/registr', (req, res) => {
-	const checkAndSaveUser = async () => await user.registration({login: req.body.login, pass: req.body.pass})
+user.registration(app)
+user.authorization(app)
+user.logout(app)
 
-	checkAndSaveUser()
-		.then(loginIsUsing => 
-			loginIsUsing 
-			? res.send({ userData: {message: 'Пользователь с таким именем уже зарегистрирован'}, error: true }) 
-			: res.send({ userData: {message: `Вы зарегистрированы, как ${req.body.login}. Можете авторизоваться.`} }) 
-		)
-})
-
-app.post('/api/auth', (req, res) => {
-	const checkLogAndPass = async () => await user.authorization({login: req.body.login, pass: req.body.pass})
-
-	checkLogAndPass()
-		.then(data => 
-			data.status 
-			? res.send({ userData: {name: req.body.login}, isLoggedIn: true }) 
-			: res.send({ userData: {message: data.reason}, error: true })			
-		)
-})
 
 app.listen(port, err => console.log(err ? `error: ${err}` : `Listening on port: ${port}`) )
 

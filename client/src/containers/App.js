@@ -2,35 +2,68 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { UserPage } from '../components/userPage'
 import { Auth } from '../components/auth'
+import { api } from '../config'
 
-import { setIsLoggedIn, setUserData } from '../actions/UserPageActions'
+import { setIsLoggedIn, setUserName, setToken, setId } from '../actions/UserActions'
 
 import './App.scss'
 
 class App extends Component {
   state = {
     disableSubmitButtons: false,
-    responseWithError: false
+    errorResponse: false,
+    serverMessage: '',
+    pageLoadingState: true
+  }
+
+  componentDidCatch(err, info) {
+    console.log(`Error: ${err}. Info: ${info}`)
   }
 
   componentDidMount() {
-    this.callMainApi()
-      .then(res => this.props.setIsLoggedInAction(res.isLoggedIn))
-      .catch(err => console.log(err))
+    this.setTokenFromLocalStorage()
+      .then(() => {
+        this.callMainApi()
+          .then(res => {
+            this.checkResponseSetProps(res)
+            this.props.setIsLoggedInAction(res.isLoggedIn)
+            this.setState({pageLoadingState: false})
+          })
+          .catch(err => console.log(err))
+      })
+  }
+
+  setTokenFromLocalStorage = async () => {
+     if (localStorage.getItem('token')) await this.props.setTokenAction(localStorage.getItem('token'))
+  }
+
+  checkResponseSetProps(res) {
+    if (res.message) this.setState({serverMessage: res.message})
+
+    if (res.userData) {
+      res.userData.name && this.props.setUserNameAction(res.userData.name)
+      res.userData.id && this.props.setUserIdAction(res.userData.id)
+    }
   }
 
   callMainApi = async () => {
-    const response = await fetch('/api/')
+    const response = await fetch(api, {
+      method: 'POST',
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Authorization': this.props.user.token
+      })
+    })
     const body = await response.json()
 
-    if(response.status !== 200) throw Error(body.message)
+    if (response.status !== 200) throw Error(body.message)
     return body
   }
 
   submitUserLogin = async (url, formData) => {
     this.setState({disableSubmitButtons: true})
 
-    const response = await fetch(`/api/${url}`, {
+    const response = await fetch(`${api}${url}`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(formData)
@@ -38,69 +71,75 @@ class App extends Component {
 
     const body = await response.json()
 
-    this.props.setUserDataAction(body.userData)
+    this.checkResponseSetProps(body)
+
+    if (body.token) {
+      localStorage.setItem('token', body.token)
+      this.props.setTokenAction(body.token)
+    }
 
     this.props.setIsLoggedInAction(body.isLoggedIn ? body.isLoggedIn : false)
 
-    this.setState(
-      {
-        disableSubmitButtons: false,
-        responseWithError: body.error ? true : false
-      }
-    )
+    this.setState({
+      disableSubmitButtons: false,
+      errorResponse: body.error ? true : false
+    })
   }
 
   render() {
-    const { userPage, setIsLoggedInAction, setUserDataAction } = this.props
+    const { user, common } = this.props
 
-    return (
-      <div className="App">
-        {userPage.isLoggedIn ?
+    const content = user.isLoggedIn 
+      ? ( 
+          <UserPage 
+            className="user-page"
+            userData={ user }
+            logoutAction={ this.props.setIsLoggedInAction }
+          />
+        ) 
 
-          ( <div className="user-page">
-              <UserPage name={ userPage.userData.name } />
+      : ( 
+          <div className="auth">              
+            <div className={this.state.errorResponse ? 'auth__message auth__message-error' : 'auth__message'}>
+
+              { this.state.serverMessage}
+
             </div>
-          ) :
+            <Auth 
+              submitFunction={this.submitUserLogin} 
+              submitUrl="auth" 
+              formClass="auth" 
+              captionText="Авторизация" 
+              buttonText="Войти" 
+              isDisabled={this.state.disableSubmitButtons}
+            />
+            <Auth 
+              submitFunction={this.submitUserLogin} 
+              submitUrl="register" 
+              formClass="reg" 
+              captionText="Регистрация" 
+              buttonText="Отправить" 
+              isDisabled={this.state.disableSubmitButtons}
+            />
+          </div>
+        )
 
-          ( <div className="auth">              
-              <div className={this.state.responseWithError ? 'auth__message auth__message-error' : 'auth__message'}>
-                { userPage.userData && userPage.userData.message ? 
-                  userPage.userData.message : 
-                  'Авторизуйтесь, или зарегистрируйтесь'}
-              </div>
-              <Auth 
-                submitFunction={this.submitUserLogin} 
-                submitUrl="auth" 
-                formClass="auth" 
-                captionText="Авторизация" 
-                buttonText="Войти" 
-                isDisabled={this.state.disableSubmitButtons}
-              />
-              <Auth 
-                submitFunction={this.submitUserLogin} 
-                submitUrl="registr" 
-                formClass="reg" 
-                captionText="Регистрация" 
-                buttonText="Отправить" 
-                isDisabled={this.state.disableSubmitButtons}
-              />
-            </div>
-          )
-        }
-      </div>
-    )
+    return <div className="App">{this.state.pageLoadingState ? '' : content}</div>
   }
 }
 
 const mapStateToProps = store => {
   return {
-    userPage: store.userPage
+    user: store.user,
+    common: store.common,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
-    setIsLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
-    setUserDataAction: userData => dispatch(setUserData(userData))
+  setIsLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
+  setUserNameAction: userName => dispatch(setUserName(userName)),
+  setTokenAction: token => dispatch(setToken(token)),
+  setUserIdAction: id => dispatch(setId(id)),
 })
 
 export default connect(

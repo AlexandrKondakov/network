@@ -17,7 +17,7 @@ export class Auth extends React.Component {
   submitFunction = async e => {
     e.preventDefault()
 
-    if(this.state.login == '' || this.state.pass == ''){
+    if (this.state.login == '' || this.state.pass == '') {
       return this.setState({errorMessage: 'Заполните все поля!'})
     }
     else this.setState({errorMessage: ''})
@@ -34,8 +34,8 @@ export class Auth extends React.Component {
         <p className="auth-form__error">{ this.state.errorMessage && this.state.errorMessage }</p>
 
         <form autoComplete="off" onSubmit={ this.submitFunction }>
-          <input type="text" name="login" placeholder="логин" onChange={ this.inputChange } />
-          <input type="password" name="pass" placeholder="пароль" onChange={ this.inputChange } />
+          <input type="text" name="login" placeholder="логин" onChange={ this.inputChange } maxLength="30" />
+          <input type="password" name="pass" placeholder="пароль" onChange={ this.inputChange } maxLength="30" />
           <button disabled={this.props.isDisabled} type="submit">
             { this.props.buttonText }
           </button>
