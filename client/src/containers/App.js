@@ -1,10 +1,18 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
+import { CustomHeader } from '../components/header'
 import { UserPage } from '../components/userPage'
+import { Page404 } from '../components/404'
 import { Auth } from '../components/auth'
 import { api } from '../config'
 
-import { setIsLoggedIn, setUserName, setToken, setId } from '../actions/UserActions'
+import {
+  setIsLoggedIn,
+  setUserName,
+  setToken,
+  setId
+} from '../actions/UserActions'
 
 import './App.scss'
 
@@ -82,49 +90,63 @@ class App extends Component {
 
     this.setState({
       disableSubmitButtons: false,
-      errorResponse: body.error ? true : false
+      errorResponse: !!body.error
     })
   }
 
   render() {
     const { user, common } = this.props
+    const authPage = (
+      <div className="auth">
+        <div className={this.state.errorResponse ? 'auth__message auth__message-error' : 'auth__message'}>
 
-    const content = user.isLoggedIn 
-      ? ( 
-          <UserPage 
-            className="user-page"
-            userData={ user }
-            logoutAction={ this.props.setIsLoggedInAction }
-          />
-        ) 
+          { this.state.serverMessage }
 
-      : ( 
-          <div className="auth">              
-            <div className={this.state.errorResponse ? 'auth__message auth__message-error' : 'auth__message'}>
+        </div>
+        <Auth
+          submitFunction={this.submitUserLogin}
+          submitUrl="auth"
+          formClass="auth"
+          captionText="Авторизация"
+          buttonText="Войти"
+          isDisabled={this.state.disableSubmitButtons}
+        />
+        <Auth
+          submitFunction={this.submitUserLogin}
+          submitUrl="register"
+          formClass="reg"
+          captionText="Регистрация"
+          buttonText="Отправить"
+          isDisabled={this.state.disableSubmitButtons}
+        />
+      </div>
+    )
 
-              { this.state.serverMessage}
+    const content = (
+      <Switch>
+        <Route exact path='/' render={() => user.isLoggedIn ? <Redirect to={`/${user.id}`} /> : authPage} />
+        <Route path={`/${user.id}`}
+           render={() => user.isLoggedIn
+             ? <UserPage
+                 className="user-page"
+                 userData={ user }
+                 logoutAction={ this.props.setIsLoggedInAction }
+               />
+             : <Redirect to='/' />
+           }
+        />
+        <Route component={ Page404 }/>
+      </Switch>
+    )
 
-            </div>
-            <Auth 
-              submitFunction={this.submitUserLogin} 
-              submitUrl="auth" 
-              formClass="auth" 
-              captionText="Авторизация" 
-              buttonText="Войти" 
-              isDisabled={this.state.disableSubmitButtons}
-            />
-            <Auth 
-              submitFunction={this.submitUserLogin} 
-              submitUrl="register" 
-              formClass="reg" 
-              captionText="Регистрация" 
-              buttonText="Отправить" 
-              isDisabled={this.state.disableSubmitButtons}
-            />
-          </div>
-        )
-
-    return <div className="App">{this.state.pageLoadingState ? '' : content}</div>
+    return (
+      <Router>
+        <div className="App">
+          <CustomHeader />
+          <div className="container">{this.state.pageLoadingState ? '' : content}</div>
+        </div>
+      </Router>
+    )
   }
 }
 

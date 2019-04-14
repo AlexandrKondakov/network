@@ -20,15 +20,21 @@ ol, ul { list-style: none; }
 @import '../vars.scss';
 
 .App{
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: sans-serif;
-  letter-spacing: .2px;
+  font-family: roboto, sans-serif;
+  letter-spacing: .5px;
   color: $font-black;
 
-  .auth{
-  	margin-top: 30px;
+  .container{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 20px;
+  }
 
+  button{
+  	cursor: pointer;
+  }
+
+  .auth{
   	&-form{
     	margin-top: 20px;
     }
@@ -39,7 +45,7 @@ ol, ul { list-style: none; }
 
 			&-error{
 				color: $error-color;
-		   		 font-weight: bold;
+   			font-weight: bold;
 			}
     }
   }

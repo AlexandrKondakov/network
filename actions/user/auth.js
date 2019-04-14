@@ -19,14 +19,22 @@ const dbErrorAction = (err, action) => {
 	}
 }
 
+const checkEmptyInputs = (inputs, res) => {
+	return inputs.forEach(input => {
+		if (!input) return res.send({message: 'Заполните все поля!', error: true})
+		if (input.length > 30 )
+			return res.send({message: 'Максимальное количество символов не больше 30', error: true})
+	})
+}
+
 passport.use('login', new LocalStrategy(userFields,
   (login, pass, done) => {
     UserModel.findOne({ login }, (err, user) => {
     	dbErrorAction(err, done)
 
 			if (!user) return done(null, false, 'Пользователь с таким именем не найден')
-			
-      if (user.hashPassword != crypto.pbkdf2Sync(pass, user.salt, 1, 128, 'sha1')) {
+
+      if (user.hashPassword !== crypto.pbkdf2Sync(pass, user.salt, 1, 128, 'sha1').toString()) {
       	return done(null, false, 'Вы ввели не верный пароль')
       }
 
@@ -79,14 +87,6 @@ passport.use(new JwtStrategy({
 	}
 ))
 
-const checkEmptyInputs = (emptyFields, res) => {
-	return emptyFields.forEach(input => {
-		if (!input) return res.send({message: 'Заполните все поля!', error: true})
-		if (input.length > 30 ) 
-			return res.send({message: 'Максимальное количество символов не больше 30', error: true})
-	})
-}
-
 exports.checkToken = app => {
 	app.post('/', (req, res) => {
 		passport.authenticate('jwt', (err, user) => {
@@ -94,7 +94,7 @@ exports.checkToken = app => {
 				return res.send({
 					isLoggedIn: false, 
 					message: err ? commonError : authText,
-					error: err ? true : false
+					error: !!err
 				})
 			}
 

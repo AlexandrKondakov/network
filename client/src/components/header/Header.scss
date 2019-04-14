@@ -1,0 +1,10 @@
+@import '../../vars.scss';
+
+.header-wrapper{
+	background: $font-black;
+}
+.header{
+  max-width: 1200px;
+	min-height: 50px;
+	margin: 0 auto;
+}
