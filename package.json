@@ -11,6 +11,7 @@
     "express": "^4.16.4",
     "mongodb": "^3.1.12",
     "mongoose": "^5.4.6",
+    "nodemailer": "^6.1.0",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0"

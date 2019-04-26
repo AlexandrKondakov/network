@@ -4,5 +4,5 @@ exports.clientUrl = 'http://localhost:3000'
 
 exports.jwtKey = 'annihilator'
 
-exports.commonError = 'Ошибка сервера, повторите позднее'
+// 'communicate.post@gmail.com'
 

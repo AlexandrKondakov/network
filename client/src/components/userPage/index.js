@@ -1,27 +1,51 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { api } from '../../config'
+import './UserPage.scss'
+import { api, appName } from '../../config'
+import { Settings } from '../settings'
+import { UsersSearch } from '../usersSearch'
+import emptyAva from '../../img/emptyAva.png'
 
 export class UserPage extends React.Component {
-	
-	logout = async () => {
-		const response = await fetch(`${api}logout`, {
-		 	method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({id: this.props.userData.id})
-    })
-    const body = await response.json()
 
-    if (localStorage.getItem('token')) localStorage.removeItem('token')
-    this.props.logoutAction(body.isLoggedIn)
-	}
+  state = {
+    componentId: 3
+  }
+
+  componentDidMount() {
+    document.querySelector('title').innerText = this.props.userData.name
+  }
+
+  componentWillUnmount() {
+    document.querySelector('title').innerText = appName
+  }
+
+  chooseContent(id) {
+    this.setState({componentId: id})
+  }
 
   render() {
+    const components = [
+      'test',
+      'test1',
+      'test2',
+      <UsersSearch />,
+      <Settings />
+    ]
+    const navList = ['Задачи', 'Сообщения', 'Контакты', 'Поиск', 'Настройки']
+      .map((item, idx) => <li key={idx} onClick={() => this.chooseContent(idx)}>{ item }</li>)
+
     return (
       <div className="user-page">
-        <p>Привет, { this.props.userData.name }!</p>
-        <button onClick={ this.logout }>Выйти</button>
-        
+        <ul className="user-page__nav">{ navList }</ul>
+        <div className="user-page__ava">
+          <img src={emptyAva} alt="avatar"/>
+        </div>
+        <div className="user-page-content">
+          <div className="user-page-content__inner">
+            {components[this.state.componentId]}
+          </div>
+        </div>
       </div>
     )
   }
@@ -29,5 +53,4 @@ export class UserPage extends React.Component {
 
 UserPage.propTypes = {
   userData: PropTypes.object.isRequired,
-  logoutAction: PropTypes.func.isRequired,
 }

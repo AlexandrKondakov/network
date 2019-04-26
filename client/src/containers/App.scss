@@ -11,7 +11,6 @@ input, label, select, button, textarea {
 	border: 0;
 	outline: 0;
 	font-size: 100%;
-	font: inherit;
 	vertical-align: middle;
 	box-sizing: border-box;
 }
@@ -25,18 +24,51 @@ ol, ul { list-style: none; }
   color: $font-black;
 
   .container{
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding-top: 20px;
+    padding: 10px 0;
+		@media (max-width: $breakpoint-big) {
+			padding: 10px 20px;
+		}
+		@media (max-width: $breakpoint-small) {
+			padding: 10px 0;
+		}
   }
 
   button{
   	cursor: pointer;
   }
 
+	.ui-input{
+		border: 1px solid $form-green;
+		height: 30px;
+		width: 260px;
+		border-radius: 4px;
+		margin-bottom: 30px;
+		padding: 0 5px;
+	}
+	.ui-button{
+		width: 150px;
+		height: 35px;
+		background: $form-green;
+		color: white;
+		outline: none;
+		border-radius: 3px;
+		letter-spacing: .3px;
+		&__small{
+			width: 130px;
+			height: 30px;
+		}
+		&:disabled{
+			background: $button-disabled;
+			cursor: default;
+			opacity: .8;
+		}
+	}
+
   .auth{
   	&-form{
-    	margin-top: 20px;
+    	margin-top: 10px;
     }
     &__message{
 			text-align: center;

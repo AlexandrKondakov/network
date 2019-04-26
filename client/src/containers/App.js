@@ -21,7 +21,7 @@ class App extends Component {
     disableSubmitButtons: false,
     errorResponse: false,
     serverMessage: '',
-    pageLoadingState: true
+    pageLoadingState: true,
   }
 
   componentDidCatch(err, info) {
@@ -29,16 +29,41 @@ class App extends Component {
   }
 
   componentDidMount() {
+    this.initApp()
+  }
+
+  initApp() {
     this.setTokenFromLocalStorage()
       .then(() => {
         this.callMainApi()
           .then(res => {
+            const path = window.location.pathname, id = path.split('/confirm/')[1]
+
             this.checkResponseSetProps(res)
             this.props.setIsLoggedInAction(res.isLoggedIn)
             this.setState({pageLoadingState: false})
+
+            if (path.includes('/confirm/') && id.length > 5 && id.length < 50) this.confirmNewUser(id)
           })
           .catch(err => console.log(err))
       })
+  }
+
+  confirmNewUser = async (id) => {
+    const response = await fetch(`${api}confirm`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id})
+    })
+
+    const body = await response.json()
+
+    if (body.error) {
+      this.setState({
+        serverMessage: body.message,
+        errorResponse: !!body.error
+      })
+    }
   }
 
   setTokenFromLocalStorage = async () => {
@@ -96,12 +121,11 @@ class App extends Component {
 
   render() {
     const { user, common } = this.props
-    const authPage = (
-      <div className="auth">
+
+    const auth = (
+      <div>
         <div className={this.state.errorResponse ? 'auth__message auth__message-error' : 'auth__message'}>
-
           { this.state.serverMessage }
-
         </div>
         <Auth
           submitFunction={this.submitUserLogin}
@@ -111,6 +135,12 @@ class App extends Component {
           buttonText="Войти"
           isDisabled={this.state.disableSubmitButtons}
         />
+      </div>
+    )
+
+    const authPage = (
+      <div className="auth">
+        {auth}
         <Auth
           submitFunction={this.submitUserLogin}
           submitUrl="register"
@@ -118,6 +148,7 @@ class App extends Component {
           captionText="Регистрация"
           buttonText="Отправить"
           isDisabled={this.state.disableSubmitButtons}
+          needNameField={true}
         />
       </div>
     )
@@ -125,15 +156,9 @@ class App extends Component {
     const content = (
       <Switch>
         <Route exact path='/' render={() => user.isLoggedIn ? <Redirect to={`/${user.id}`} /> : authPage} />
+        <Route path='/confirm' render={() => user.isLoggedIn ? <Redirect to={`/${user.id}`} /> : auth} />
         <Route path={`/${user.id}`}
-           render={() => user.isLoggedIn
-             ? <UserPage
-                 className="user-page"
-                 userData={ user }
-                 logoutAction={ this.props.setIsLoggedInAction }
-               />
-             : <Redirect to='/' />
-           }
+          render={() => user.isLoggedIn ? <UserPage className="user-page" userData={user}/> : <Redirect to='/'/>}
         />
         <Route component={ Page404 }/>
       </Switch>
@@ -142,7 +167,10 @@ class App extends Component {
     return (
       <Router>
         <div className="App">
-          <CustomHeader />
+          <CustomHeader
+            logoutAction={ this.props.setIsLoggedInAction }
+            userData={ user }
+          />
           <div className="container">{this.state.pageLoadingState ? '' : content}</div>
         </div>
       </Router>

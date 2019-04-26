@@ -5,8 +5,9 @@ import './Auth.scss'
 export class Auth extends React.Component {
 
   state = {
-    login: '',
+    email: '',
     pass: '',
+    name: '',
     errorMessage: ''
   }
 
@@ -17,10 +18,17 @@ export class Auth extends React.Component {
   submitFunction = async e => {
     e.preventDefault()
 
-    if (!this.state.login || !this.state.pass) return this.setState({errorMessage: 'Заполните все поля!'})
-    else this.setState({errorMessage: ''})
+    const fieldsIsRequired = this.props.needNameField
+      ? !this.state.email || !this.state.pass || !this.state.name
+      : !this.state.email || !this.state.pass
 
-    this.props.submitFunction(this.props.submitUrl, {login: this.state.login, pass: this.state.pass})
+    if (fieldsIsRequired) return this.setState({errorMessage: 'Заполните все поля!'})
+
+    this.setState({errorMessage: ''})
+
+    this.props.submitFunction(
+      this.props.submitUrl, {email: this.state.email.trim(), pass: this.state.pass, name: this.state.name.trim()}
+    )
   }
 
   render() {
@@ -32,9 +40,33 @@ export class Auth extends React.Component {
         <p className="auth-form__error">{ this.state.errorMessage && this.state.errorMessage }</p>
 
         <form autoComplete="off" onSubmit={ this.submitFunction }>
-          <input type="text" name="login" placeholder="логин" onChange={ this.inputChange } maxLength="30" autoComplete="off" />
-          <input type="password" name="pass" placeholder="пароль" onChange={ this.inputChange } maxLength="30" autoComplete="off" />
-          <button disabled={this.props.isDisabled} type="submit">
+          {this.props.needNameField &&
+            <input
+              className="ui-input"
+              type="text"
+              name="name"
+              placeholder="имя"
+              onChange={ this.inputChange }
+              maxLength="30" autoComplete="off"
+            />
+          }
+          <input
+            className="ui-input"
+            type="text"
+            name="email"
+            placeholder="email"
+            onChange={ this.inputChange }
+            maxLength="30" autoComplete="off"
+          />
+          <input
+            className="ui-input"
+            type="password"
+            name="pass"
+            placeholder="пароль"
+            onChange={ this.inputChange }
+            maxLength="30" autoComplete="off"
+          />
+          <button className="ui-button" disabled={this.props.isDisabled} type="submit">
             { this.props.buttonText }
           </button>
         </form>
@@ -49,5 +81,6 @@ Auth.propTypes = {
   captionText: PropTypes.string.isRequired,
   buttonText: PropTypes.string.isRequired,
   submitUrl: PropTypes.string.isRequired,
-  isDisabled: PropTypes.bool.isRequired
+  isDisabled: PropTypes.bool.isRequired,
+  needNameField: PropTypes.bool
 }

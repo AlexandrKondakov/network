@@ -1,0 +1,36 @@
+@import '../../vars.scss';
+
+.settings{
+  form{
+    text-align: right;
+  }
+  label{
+    display: inline-block;
+    &:nth-of-type(even){
+      margin-left: 30px;
+    }
+    span{
+      display: block;
+    }
+    input[type="file"]{
+      display: none;
+    }
+  }
+  .file-wrapper{
+    position: relative;
+    text-align: center;
+    line-height: 1.7;
+    &__error{
+      position: absolute;
+      top: -8px;
+      right: 0;
+      font-size: $font-size-medium;
+      color: $error-color;
+    }
+  }
+  .file{
+    background: $form-green;
+    cursor: pointer;
+    color: white;
+  }
+}

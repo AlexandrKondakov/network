@@ -5,16 +5,15 @@ const mongoose = require('mongoose')
 const dbUser = require('./config').dbUser
 const clientUrl = require('./config').clientUrl
 const user = require('./actions/user/auth')
+const usersSearch = require('./actions/searching')
 
 const app = express()
-const db = mongoose.connection
 
 mongoose.connect(dbUser, { useNewUrlParser: true })
-db.on('error', console.error.bind(console, 'MongoDB connection error: '))
+mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error: '))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
-// app.use(express.static('client/public'))
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', clientUrl)
@@ -25,9 +24,11 @@ app.use((req, res, next) => {
 })
 
 user.registration(app)
+user.confirmUser(app)
 user.authorization(app)
 user.logout(app)
 
+usersSearch(app)
 
-app.listen(port, err => console.log(err ? `error: ${err}` : `Listening on port: ${port}`) )
+app.listen(port, err => { console.log(err ? `error: ${err}` : `Listening on port: ${port}`) })
 
