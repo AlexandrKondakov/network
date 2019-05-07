@@ -9,6 +9,7 @@ import { api } from '../config'
 
 import {
   setIsLoggedIn,
+  setAvatarLink,
   setUserName,
   setToken,
   setId
@@ -50,7 +51,7 @@ class App extends Component {
   }
 
   confirmNewUser = async (id) => {
-    const response = await fetch(`${api}confirm`, {
+    const response = await fetch(`${api}/confirm`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({id})
@@ -76,6 +77,7 @@ class App extends Component {
     if (res.userData) {
       res.userData.name && this.props.setUserNameAction(res.userData.name)
       res.userData.id && this.props.setUserIdAction(res.userData.id)
+      res.userData.avatarLink && this.props.setAvatarLinkAction(res.userData.avatarLink)
     }
   }
 
@@ -93,10 +95,10 @@ class App extends Component {
     return body
   }
 
-  submitUserLogin = async (url, formData) => {
+  submitUserData = async (url, formData) => {
     this.setState({disableSubmitButtons: true})
 
-    const response = await fetch(`${api}${url}`, {
+    const response = await fetch(`${api}/${url}`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(formData)
@@ -128,7 +130,7 @@ class App extends Component {
           { this.state.serverMessage }
         </div>
         <Auth
-          submitFunction={this.submitUserLogin}
+          submitFunction={this.submitUserData}
           submitUrl="auth"
           formClass="auth"
           captionText="Авторизация"
@@ -142,7 +144,7 @@ class App extends Component {
       <div className="auth">
         {auth}
         <Auth
-          submitFunction={this.submitUserLogin}
+          submitFunction={this.submitUserData}
           submitUrl="register"
           formClass="reg"
           captionText="Регистрация"
@@ -190,6 +192,7 @@ const mapDispatchToProps = dispatch => ({
   setUserNameAction: userName => dispatch(setUserName(userName)),
   setTokenAction: token => dispatch(setToken(token)),
   setUserIdAction: id => dispatch(setId(id)),
+  setAvatarLinkAction: link => dispatch(setAvatarLink(link)),
 })
 
 export default connect(

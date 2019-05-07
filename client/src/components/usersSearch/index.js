@@ -22,9 +22,9 @@ export class UsersSearch extends React.Component {
   searchUsers = async e => {
     e.preventDefault()
 
-    if (!this.state.userForSearch) return;
+    if (!this.state.userForSearch) return this.setState({foundUsers: []})
 
-    const response = await fetch(`${api}usersSearch`, {
+    const response = await fetch(`${api}/findUser`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({user: this.state.userForSearch.trim()})

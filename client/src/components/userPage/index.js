@@ -12,15 +12,15 @@ export class UserPage extends React.Component {
     componentId: 3
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
     document.querySelector('title').innerText = this.props.userData.name
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     document.querySelector('title').innerText = appName
   }
 
-  chooseContent(id) {
+  chooseContent = (id) => {
     this.setState({componentId: id})
   }
 
@@ -32,15 +32,19 @@ export class UserPage extends React.Component {
       <UsersSearch />,
       <Settings />
     ]
+
     const navList = ['Задачи', 'Сообщения', 'Контакты', 'Поиск', 'Настройки']
       .map((item, idx) => <li key={idx} onClick={() => this.chooseContent(idx)}>{ item }</li>)
+
+    const { avatarLink } = this.props.userData
 
     return (
       <div className="user-page">
         <ul className="user-page__nav">{ navList }</ul>
-        <div className="user-page__ava">
-          <img src={emptyAva} alt="avatar"/>
-        </div>
+        <div
+          className="user-page__ava"
+          style={{backgroundImage: `url(${avatarLink ? avatarLink : emptyAva})`}}
+        />
         <div className="user-page-content">
           <div className="user-page-content__inner">
             {components[this.state.componentId]}

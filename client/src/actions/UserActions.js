@@ -2,6 +2,7 @@ export const SET_IS_LOGGED_IN = 'SET_IS_LOGGED_IN'
 export const SET_USER_NAME = 'SET_USER_NAME'
 export const SET_TOKEN = 'SET_TOKEN'
 export const SET_ID = 'SET_ID'
+export const SET_AVATAR_LINK = 'SET_AVATAR_LINK'
 
 export function setIsLoggedIn(isLoggedIn) {
   return {
@@ -28,5 +29,12 @@ export function setId(id) {
   return {
     type: SET_ID,
     payload: id,
+  }
+}
+
+export function setAvatarLink(link) {
+  return {
+    type: SET_AVATAR_LINK,
+    payload: link,
   }
 }

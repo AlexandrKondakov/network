@@ -1,18 +1,18 @@
 const nodeMailer = require('nodemailer')
 
-const sendEmail = (receiver = '', link, title = '', message = '') => {
+const sendEmail = (receiver = 'communicate.post@gmail.com', link, title = '', message = '') => {
 
   const transporter = nodeMailer.createTransport({
     host: 'smtp.mail.ru',
     port: 587,
     auth: {
-      user: '',
+      user: 'sergtankian@mail.ru',
       pass: ''
     }
   })
 
   const options = {
-    from: '',
+    from: 'sergtankian@mail.ru',
     to: receiver,
     subject: title
   }

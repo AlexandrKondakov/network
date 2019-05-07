@@ -4,34 +4,27 @@ import { api, appName } from '../../config'
 import PropTypes from 'prop-types'
 
 export class CustomHeader extends React.Component {
-	constructor(props) {
-		super(props)
-		this.userNavList = null
-
-		this.setNavListRef = el => {
-			this.userNavList = el
-		}
-	}
-
 	state = {
 		userListIsOpen: false
 	}
 
 	logout = async () => {
-		const response = await fetch(`${api}logout`, {
+		const response = await fetch(`${api}/logout`, {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({id: this.props.userData.id})
 		})
+
 		const body = await response.json()
 
 		if (localStorage.getItem('token')) localStorage.removeItem('token')
+
 		this.props.logoutAction(body.isLoggedIn)
 		this.toggleUserList()
 	}
 
 	setUserListListener = (e) => {
-		if (e.target !== this.userNavList && e.target.parentElement !== this.userNavList) {
+		if (e.target !== this.refs.userNavList && e.target.parentElement !== this.refs.userNavList) {
 			this.setState({userListIsOpen: false})
 			document.removeEventListener('click', this.setUserListListener)
 		}
@@ -40,8 +33,7 @@ export class CustomHeader extends React.Component {
 	toggleUserList = (open) => {
 		this.setState({userListIsOpen: open})
 
-		if (open) document.addEventListener('click', this.setUserListListener)
-		else document.removeEventListener('click', this.setUserListListener)
+		document[open ? 'addEventListener' : 'removeEventListener']('click', this.setUserListListener)
 	}
 
 	render() {
@@ -58,7 +50,7 @@ export class CustomHeader extends React.Component {
 								>{ this.props.userData.name }</span>
 								<ul
 									className={this.state.userListIsOpen ? 'user-list user-list__open' : 'user-list'}
-									ref={this.setNavListRef}
+									ref="userNavList"
 								>
 									<li onClick={ this.logout }>Выйти</li>
 								</ul>

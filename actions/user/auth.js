@@ -3,14 +3,18 @@ const jwt = require('jsonwebtoken')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const JwtStrategy = require('passport-jwt').Strategy
-const ExtractJwt = require('passport-jwt').ExtractJwt
+const { ExtractJwt } = require('passport-jwt')
 const crypto = require('crypto')
-const jwtKey = require('../../config').jwtKey
-const siteName = require('../../config').clientUrl
-const commonError = require('../../helpers').commonError
-const emailRegExp = require('../../helpers').emailRegExp
-const latinRegExp = require('../../helpers').latinRegExp
-const sendEmail = require('../sendEmail')
+const { jwtKey } = require('../../config')
+const { siteName } = require('../../config')
+const sendMail = require('../sendMail')
+const {
+	commonError,
+	emailRegExp,
+	latinRegExp,
+	errorResponse
+} = require('../../helpers')
+
 
 const authText = 'Авторизуйтесь, или зарегистрируйтесь'
 const userFields = {
@@ -20,12 +24,19 @@ const userFields = {
   session: false
 }
 
-const checkEmptyInputs = (inputs, res) => {
-	return inputs.forEach(input => {
-		if (!input) return res.send({message: 'Заполните все поля!', error: true})
-		if (input.length > 30 )
-			return res.send({message: 'Максимальное количество символов не больше 30', error: true})
-	})
+const inputsValidate = inputs => {
+	let text = ''
+	for (let i = 0, len = inputs.length; i < len; i++) {
+		if (!inputs[i]) {
+			text = 'Заполните все поля!'
+			break
+		}
+		if (inputs[i].length > 30 ) {
+			text = 'Максимальное количество символов не больше 30'
+			break
+		}
+	}
+	return text
 }
 
 passport.use('login', new LocalStrategy(userFields,
@@ -66,7 +77,7 @@ passport.use('register', new LocalStrategy(userFields,
 
 			newUser.save()
 				.then(() =>
-					sendEmail(email, `${siteName}/confirm/${newUser._id}`, `Регистрация на сайте ${siteName}`)
+					sendMail(email, `${siteName}/confirm/${newUser._id}`, `Регистрация на сайте ${siteName}`)
 				)
         .then(() =>
           done(null, false, `На ${email} отправлена ссылка для подтверждения регистрации, перейдите по ней.`)
@@ -93,7 +104,7 @@ passport.use(new JwtStrategy({
 ))
 
 exports.checkToken = app => {
-	app.post('/', (req, res) => {
+	app.post('/api', (req, res) => {
 		passport.authenticate('jwt', (err, user) => {
 			if (err || !user) {
 				return res.send({
@@ -103,27 +114,32 @@ exports.checkToken = app => {
 				})
 			}
 
-			res.send({isLoggedIn: true, userData: {name: user.name, id: user._id}})
+			res.send({
+				isLoggedIn: true,
+				userData: {name: user.name, id: user._id, avatarLink: user.avatarLink}
+			})
     })(req, res)
 	})
 }
 
 exports.authorization = app => {
-	app.post('/auth', (req, res) => {
+	app.post('/api/auth', (req, res) => {
+		const checkInputs = inputsValidate([req.body.email, req.body.pass])
 
-		checkEmptyInputs([req.body.email, req.body.pass], res)
+		if (checkInputs) return errorResponse(res, checkInputs)
 
     passport.authenticate('login', (err, user, status) => {
-      if (err) return res.send({message: commonError, error: true})
+      if (err) return errorResponse(res)
 
-      if (!user) return res.send({message: status, error: true})
+      if (!user) return errorResponse(res, status)
 
       const token = jwt.sign({id: user._id, email: user.email}, jwtKey)
 
       res.send({
       	userData: {
     			name: user.name,
-    			id: user._id
+    			id: user._id,
+					avatarLink: user.avatarLink
     		},
     		token: `JWT ${token}`,
     		isLoggedIn: true,
@@ -134,20 +150,19 @@ exports.authorization = app => {
 }
 
 exports.registration = app => {
-	app.post('/register', (req, res) => {
+	app.post('/api/register', (req, res) => {
+		const checkInputs = inputsValidate([req.body.email, req.body.pass, req.body.name])
 
-		checkEmptyInputs([req.body.email, req.body.pass, req.body.name], res)
+		if (checkInputs) return errorResponse(res, checkInputs)
 
-		if (!emailRegExp.test(req.body.email)) return res.send({message: 'Укажите корректный email', error: true})
+		if (!emailRegExp.test(req.body.email)) return errorResponse(res, 'Укажите корректный email')
 
-		if (!latinRegExp.test(req.body.pass)) {
-			return res.send({message: 'Пароль должен быть введен латинскими буквами', error: true})
-		}
+		if (!latinRegExp.test(req.body.pass)) return errorResponse(res, 'Пароль не должен содержать кириллицу')
 
     passport.authenticate('register', (err, user, status) => {
-      if (err) return res.send({message: commonError, error: true})
+      if (err) return errorResponse(res)
 
-      if (user) return res.send({message: status, error: true})
+      if (user) return errorResponse(res, status)
 
 			res.send({message: status})
     })(req, res)
@@ -155,22 +170,22 @@ exports.registration = app => {
 }
 
 exports.confirmUser = app => {
-	app.post('/confirm', (req, res) => {
+	app.post('/api/confirm', (req, res) => {
 		UserModel.findById(req.body.id, (err, user) => {
-			if (err) return res.send({message: commonError, error: true})
+			if (err || !user) return errorResponse(res)
 
 			if (!user.isConfirmed) {
 				user.isConfirmed = true
-				user.save(err => err && console.log(err))
+				user.save(err => { if (err) return errorResponse(res) })
 			}
 		})
 	})
 }
 
 exports.logout = app => {
-	app.post('/logout', (req, res) => {
+	app.post('/api/logout', (req, res) => {
 		UserModel.findById(req.body.id, (err) => {
-	  	if (err) return res.send({message: commonError, error: true})
+	  	if (err) return errorResponse(res)
 
       res.send({isLoggedIn: false})
 	  })
