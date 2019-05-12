@@ -8,7 +8,7 @@ export class Auth extends React.Component {
     email: '',
     pass: '',
     name: '',
-    errorMessage: ''
+    emptyFields: false
   }
 
   inputChange = e => {
@@ -22,13 +22,13 @@ export class Auth extends React.Component {
       ? !this.state.email || !this.state.pass || !this.state.name
       : !this.state.email || !this.state.pass
 
-    if (fieldsIsRequired) return this.setState({errorMessage: 'Заполните все поля!'})
+    if (fieldsIsRequired) return this.setState({emptyFields: true})
 
-    this.setState({errorMessage: ''})
+    this.setState({emptyFields: false})
 
-    this.props.submitFunction(
-      this.props.submitUrl, {email: this.state.email.trim(), pass: this.state.pass, name: this.state.name.trim()}
-    )
+    const fields = {email: this.state.email.trim(), pass: this.state.pass.trim(), name: this.state.name.trim()}
+
+    this.props.submitFunction(this.props.submitUrl, fields)
   }
 
   render() {
@@ -37,7 +37,7 @@ export class Auth extends React.Component {
 
         <p className="auth-form__caption">{ this.props.captionText }</p>
 
-        <p className="auth-form__error">{ this.state.errorMessage && this.state.errorMessage }</p>
+        <p className="auth-form__error">{ this.state.emptyFields && 'Заполните все поля!' }</p>
 
         <form autoComplete="off" onSubmit={ this.submitFunction }>
           {this.props.needNameField &&
@@ -52,7 +52,7 @@ export class Auth extends React.Component {
           }
           <input
             className="ui-input"
-            type="text"
+            type="email"
             name="email"
             placeholder="email"
             onChange={ this.inputChange }

@@ -2,7 +2,6 @@ const port = process.env.PORT || 5000
 const express = require('express')
 const bodyParser = require('body-parser')
 const https = require('https')
-const fs = require('fs')
 const mongoose = require('mongoose')
 const { dbUser, siteName } = require('./config')
 const user = require('./actions/user/auth')

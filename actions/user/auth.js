@@ -12,7 +12,8 @@ const {
 	commonError,
 	emailRegExp,
 	latinRegExp,
-	errorResponse
+	errorResponse,
+	inputsValidate
 } = require('../../helpers')
 
 
@@ -22,21 +23,6 @@ const userFields = {
   passwordField: 'pass',
   passReqToCallback: true,
   session: false
-}
-
-const inputsValidate = inputs => {
-	let text = ''
-	for (let i = 0, len = inputs.length; i < len; i++) {
-		if (!inputs[i]) {
-			text = 'Заполните все поля!'
-			break
-		}
-		if (inputs[i].length > 30 ) {
-			text = 'Максимальное количество символов не больше 30'
-			break
-		}
-	}
-	return text
 }
 
 passport.use('login', new LocalStrategy(userFields,
@@ -67,7 +53,7 @@ passport.use('register', new LocalStrategy(userFields,
 			name: req.body.name,
 			isConfirmed: false,
 			hashPassword: crypto.pbkdf2Sync(pass, salt, 1, 128, 'sha1'),
-			salt: salt
+			salt
 		})
 
     UserModel.findOne({ email }, (err, user) => {
@@ -124,9 +110,9 @@ exports.checkToken = app => {
 
 exports.authorization = app => {
 	app.post('/api/auth', (req, res) => {
-		const checkInputs = inputsValidate([req.body.email, req.body.pass])
+		const inputsError = inputsValidate([req.body.email, req.body.pass])
 
-		if (checkInputs) return errorResponse(res, checkInputs)
+		if (inputsError) return errorResponse(res, inputsError)
 
     passport.authenticate('login', (err, user, status) => {
       if (err) return errorResponse(res)
@@ -151,9 +137,9 @@ exports.authorization = app => {
 
 exports.registration = app => {
 	app.post('/api/register', (req, res) => {
-		const checkInputs = inputsValidate([req.body.email, req.body.pass, req.body.name])
+		const inputsError = inputsValidate([req.body.email, req.body.pass, req.body.name])
 
-		if (checkInputs) return errorResponse(res, checkInputs)
+		if (inputsError) return errorResponse(res, inputsError)
 
 		if (!emailRegExp.test(req.body.email)) return errorResponse(res, 'Укажите корректный email')
 

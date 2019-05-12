@@ -34,12 +34,18 @@ export class Settings extends React.Component {
   sendSettings = async e => {
     e.preventDefault()
 
-    if (this.state.userData.pass !== this.state.passConfirm) return;
+    const { userData } = this.state
+
+    if (userData.pass !== this.state.passConfirm) return;
 
     const payload = new FormData()
 
-    for (let key in this.state.userData) {
-      if (this.state.userData[key]) payload.append(key, this.state.userData[key])
+    for (let key in userData) {
+      if (userData[key]) {
+        typeof userData[key] === 'string'
+          ? payload.append(key, userData[key].trim())
+          : payload.append(key, userData[key])
+      }
     }
 
     const response = await fetch(`${api}/settings`, {
@@ -49,8 +55,9 @@ export class Settings extends React.Component {
 
     const body = await response.json()
 
-    if (body.error && body.error.type) {
-      return this.setState({errorType: body.error.type, errorMessage: body.message})
+    if (body.error) {
+      if (typeof body.error === 'boolean') return this.setState({errorType: 'common', errorMessage: body.message})
+      if (body.error.type) return this.setState({errorType: body.error.type, errorMessage: body.message})
     }
 
   }
@@ -86,14 +93,14 @@ export class Settings extends React.Component {
           <label>
             <span className={this.state.errorType === 'pass' ? 'error' : ''}>Новый пароль</span>
             <input
-              type="pass" maxLength="30" autoComplete="off"
+              type="password" maxLength="30" autoComplete="off"
               className="ui-input" onChange={(e) => { this.changeUserDataProp('pass', e) }}
             />
           </label>
           <label>
             <span>Повторите пароль</span>
             <input
-              type="pass" maxLength="30" autoComplete="off"
+              type="password" maxLength="30" autoComplete="off"
               className="ui-input" onChange={(e) => { this.changeUserDataProp('passConfirm', e) }}
             />
           </label>

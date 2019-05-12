@@ -6,13 +6,13 @@ const sendEmail = (receiver = 'communicate.post@gmail.com', link, title = '', me
     host: 'smtp.mail.ru',
     port: 587,
     auth: {
-      user: 'sergtankian@mail.ru',
+      user: '',
       pass: ''
     }
   })
 
   const options = {
-    from: 'sergtankian@mail.ru',
+    from: '',
     to: receiver,
     subject: title
   }

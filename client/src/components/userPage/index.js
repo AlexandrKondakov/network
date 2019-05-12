@@ -26,14 +26,13 @@ export class UserPage extends React.Component {
 
   render() {
     const components = [
-      'test',
       'test1',
       'test2',
       <UsersSearch />,
       <Settings />
     ]
 
-    const navList = ['Задачи', 'Сообщения', 'Контакты', 'Поиск', 'Настройки']
+    const navList = ['Сообщения', 'Контакты', 'Поиск', 'Настройки']
       .map((item, idx) => <li key={idx} onClick={() => this.chooseContent(idx)}>{ item }</li>)
 
     const { avatarLink } = this.props.userData
