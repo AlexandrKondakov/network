@@ -13,7 +13,8 @@ const {
 	emailRegExp,
 	latinRegExp,
 	errorResponse,
-	inputsValidate
+	inputsValidate,
+	getUserId
 } = require('../../helpers')
 
 
@@ -51,6 +52,7 @@ passport.use('register', new LocalStrategy(userFields,
 			unique: true,
 			email,
 			name: req.body.name,
+			contacts: [],
 			isConfirmed: false,
 			hashPassword: crypto.pbkdf2Sync(pass, salt, 1, 128, 'sha1'),
 			salt
@@ -89,92 +91,87 @@ passport.use(new JwtStrategy({
 	}
 ))
 
-exports.checkToken = app => {
-	app.post('/api', (req, res) => {
-		passport.authenticate('jwt', (err, user) => {
-			if (err || !user) {
-				return res.send({
-					isLoggedIn: false,
-					message: err ? commonError : authText,
-					error: !!err
-				})
-			}
 
-			res.send({
-				isLoggedIn: true,
-				userData: {name: user.name, id: user._id, avatarLink: user.avatarLink}
+exports.checkToken = (req, res) => {
+	passport.authenticate('jwt', (err, user) => {
+		if (err || !user) {
+			return res.send({
+				isLoggedIn: false,
+				message: err ? commonError : authText,
+				error: !!err
 			})
-    })(req, res)
-	})
-}
+		}
 
-exports.authorization = app => {
-	app.post('/api/auth', (req, res) => {
-		const inputsError = inputsValidate([req.body.email, req.body.pass])
-
-		if (inputsError) return errorResponse(res, inputsError)
-
-    passport.authenticate('login', (err, user, status) => {
-      if (err) return errorResponse(res)
-
-      if (!user) return errorResponse(res, status)
-
-      const token = jwt.sign({id: user._id, email: user.email}, jwtKey)
-
-      res.send({
-      	userData: {
-    			name: user.name,
-    			id: user._id,
-					avatarLink: user.avatarLink
-    		},
-    		token: `JWT ${token}`,
-    		isLoggedIn: true,
-    		message: authText
-    	})
-    })(req, res)
-  })
-}
-
-exports.registration = app => {
-	app.post('/api/register', (req, res) => {
-		const inputsError = inputsValidate([req.body.email, req.body.pass, req.body.name])
-
-		if (inputsError) return errorResponse(res, inputsError)
-
-		if (!emailRegExp.test(req.body.email)) return errorResponse(res, 'Укажите корректный email')
-
-		if (!latinRegExp.test(req.body.pass)) return errorResponse(res, 'Пароль не должен содержать кириллицу')
-
-    passport.authenticate('register', (err, user, status) => {
-      if (err) return errorResponse(res)
-
-      if (user) return errorResponse(res, status)
-
-			res.send({message: status})
-    })(req, res)
-  })
-}
-
-exports.confirmUser = app => {
-	app.post('/api/confirm', (req, res) => {
-		UserModel.findById(req.body.id, (err, user) => {
-			if (err || !user) return errorResponse(res)
-
-			if (!user.isConfirmed) {
-				user.isConfirmed = true
-				user.save(err => { if (err) return errorResponse(res) })
+		res.send({
+			isLoggedIn: true,
+			userData: {
+				name: user.name,
+				id: user._id,
+				avatarLink: user.avatarLink
 			}
 		})
+	})(req, res)
+}
+
+exports.authorization = (req, res) => {
+	const inputsError = inputsValidate([req.body.email, req.body.pass])
+
+	if (inputsError) return errorResponse(res, inputsError)
+
+	passport.authenticate('login', (err, user, status) => {
+		if (err) return errorResponse(res)
+
+		if (!user) return errorResponse(res, status)
+
+		const token = jwt.sign({id: user._id, email: user.email}, jwtKey)
+
+		res.send({
+			userData: {
+				name: user.name,
+				id: user._id,
+				avatarLink: user.avatarLink
+			},
+			token: `JWT ${token}`,
+			isLoggedIn: true,
+			message: authText
+		})
+	})(req, res)
+}
+
+exports.registration = (req, res) => {
+	const inputsError = inputsValidate([req.body.email, req.body.pass, req.body.name])
+
+	if (inputsError) return errorResponse(res, inputsError)
+
+	if (!emailRegExp.test(req.body.email)) return errorResponse(res, 'Укажите корректный email')
+
+	if (!latinRegExp.test(req.body.pass)) return errorResponse(res, 'Пароль содержит запрещенные символы')
+
+	passport.authenticate('register', (err, user, status) => {
+		if (err) return errorResponse(res)
+
+		if (user) return errorResponse(res, status)
+
+		res.send({message: status})
+	})(req, res)
+}
+
+exports.confirmUser = (req, res) => {
+	UserModel.findById(req.body.id, (err, user) => {
+		if (err || !user) return errorResponse(res)
+
+		if (!user.isConfirmed) {
+			user.isConfirmed = true
+			user.save(err => { if (err) return errorResponse(res) })
+		}
 	})
 }
 
-exports.logout = app => {
-	app.post('/api/logout', (req, res) => {
-		UserModel.findById(req.body.id, (err) => {
-	  	if (err) return errorResponse(res)
+exports.logout = (req, res) => {
+	UserModel.findById(getUserId(req), err => {
+		if (err) return errorResponse(res)
 
-      res.send({isLoggedIn: false})
-	  })
+		res.send({isLoggedIn: false})
 	})
 }
 

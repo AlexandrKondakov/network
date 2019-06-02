@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { spaceNormalize } from '../../helpers'
 import './Auth.scss'
 
 export class Auth extends React.Component {
@@ -18,15 +19,14 @@ export class Auth extends React.Component {
   submitFunction = async e => {
     e.preventDefault()
 
-    const fieldsIsRequired = this.props.needNameField
-      ? !this.state.email || !this.state.pass || !this.state.name
-      : !this.state.email || !this.state.pass
+    const { email, pass, name } = this.state
+    const fieldsIsRequired = this.props.needNameField ? !email || !pass || !name : !email || !pass
 
     if (fieldsIsRequired) return this.setState({emptyFields: true})
 
     this.setState({emptyFields: false})
 
-    const fields = {email: this.state.email.trim(), pass: this.state.pass.trim(), name: this.state.name.trim()}
+    const fields = {email: spaceNormalize(email), pass: spaceNormalize(pass), name: spaceNormalize(name)}
 
     this.props.submitFunction(this.props.submitUrl, fields)
   }

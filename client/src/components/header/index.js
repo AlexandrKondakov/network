@@ -1,25 +1,23 @@
 import React from 'react'
 import './Header.scss'
-import { api, appName } from '../../config'
+import { appName, sendAjax } from '../../helpers'
 import PropTypes from 'prop-types'
 
 export class CustomHeader extends React.Component {
+
 	state = {
 		userListIsOpen: false
 	}
 
 	logout = async () => {
-		const response = await fetch(`${api}/logout`, {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({id: this.props.userData.id})
-		})
-
+		const response = await sendAjax('logout')
 		const body = await response.json()
+
+		if (body.error) console.log(body.message)
 
 		if (localStorage.getItem('token')) localStorage.removeItem('token')
 
-		this.props.logoutAction(body.isLoggedIn)
+		this.props.logoutAction(false)
 		this.toggleUserList()
 	}
 

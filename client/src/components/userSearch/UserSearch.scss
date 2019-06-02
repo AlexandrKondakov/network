@@ -7,15 +7,17 @@
     position: relative;
   }
   ul {
-    margin-top: 10px;
+    margin-top: 20px;
   }
   &__searching {
-    width: 100%;
     height: 100%;
-    max-width: 450px;
+    width: 310px;
     border: 1px solid $font-black;
     border-radius: 12px;
     padding: 0 10px;
+    @media (max-width: $breakpoint-medium) {
+      width: 280px;
+    }
   }
   &__submit {
     position: absolute;
@@ -45,9 +47,7 @@
       height: 8px;
     }
   }
-  &__message {
-    border-bottom: 1px solid $border-grey;
-    padding: 3px 0;
-    cursor: pointer;
+  &__user {
+    display: block;
   }
 }

@@ -11,7 +11,7 @@ const initialState = {
 export function userReducer(state = initialState, action) {
   switch (action.type) {
     case SET_IS_LOGGED_IN:
-      return { ...state, isLoggedIn: action.payload }
+      return action.payload ? { ...state, isLoggedIn: true } : initialState
     case SET_USER_NAME:
       return { ...state, name: action.payload }
     case SET_TOKEN:
@@ -21,7 +21,6 @@ export function userReducer(state = initialState, action) {
     case SET_AVATAR_LINK:
       return { ...state, avatarLink: action.payload }
 
-    default:
-      return state
+    default: return state
   }
 }	

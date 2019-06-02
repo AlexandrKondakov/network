@@ -9,6 +9,11 @@ exports.commonError = 'Ошибка сервера, повторите позд�
 
 exports.errorResponse = (res, text = exports.commonError) => { res.send({message: text, error: true}) }
 
+exports.getUserId = req => {
+  try { return req.headers.referer.split(`${req.headers.origin}/`)[1].split('/')[0] }
+  catch(e) { return '' }
+}
+
 exports.inputsValidate = (inputs, checkEmpty = true) => {
   let text = ''
   for (let i = 0, len = inputs.length; i < len; i++) {

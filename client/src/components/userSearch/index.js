@@ -1,22 +1,19 @@
 import React from 'react'
-import './UsersSearch.scss'
-import {api} from '../../config'
+import { UserListItem } from '../userListItem'
+import './UserSearch.scss'
+import { sendAjax, spaceNormalize } from '../../helpers'
 
-export class UsersSearch extends React.Component {
+export class UserSearch extends React.Component {
 
   state = {
     userForSearch: '',
     foundUsers: [],
     errorResponse: false,
-    message: ''
+    info: '',
   }
 
-  changeUserForSearch = (e) => {
+  changeUserForSearch = e => {
     this.setState({userForSearch: e.target.value})
-  }
-
-  chooseUser = (id) => {
-    console.log(id)
   }
 
   searchUsers = async e => {
@@ -24,17 +21,12 @@ export class UsersSearch extends React.Component {
 
     if (!this.state.userForSearch) return this.setState({foundUsers: []})
 
-    const response = await fetch(`${api}/findUser`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({user: this.state.userForSearch.trim()})
-    })
-
+    const response = await sendAjax('findUser', {user: spaceNormalize(this.state.userForSearch)})
     const body = await response.json()
 
     if (body.error) {
       return this.setState({
-        message: body.message,
+        info: body.message,
         errorResponse: !!body.error
       })
     }
@@ -42,22 +34,20 @@ export class UsersSearch extends React.Component {
     if (!body.usersList.length) {
       return this.setState({
         foundUsers: [],
-        message: 'Пользователи не найдены...',
+        info: 'Пользователи не найдены...',
         errorResponse: false
       })
     }
 
     this.setState({
-      message: '',
+      info: '',
       errorResponse: false,
       foundUsers: body.usersList
     })
   }
 
   render() {
-    const usersList = this.state.foundUsers.map((user, idx) => {
-      return <li className='users-search__message' key={idx} onClick={() => this.chooseUser(user.id)}>{user.name}</li>
-    })
+    const usersList = this.state.foundUsers.map((user, idx) => <UserListItem user={user} key={idx}/>)
 
     return (
       <div className="users-search">
@@ -65,11 +55,11 @@ export class UsersSearch extends React.Component {
           <input
             className="users-search__searching" type="text"
             autoComplete="off" maxLength="40" placeholder="Введите имя пользователя"
-            onChange={this.changeUserForSearch}
+            ref="searchInput" onChange={this.changeUserForSearch}
           />
-          <button className="users-search__submit"></button>
+          <button className="users-search__submit" />
         </form>
-        <ul>{this.state.foundUsers.length ? usersList : <li>{this.state.message}</li>}</ul>
+        <ul>{this.state.foundUsers.length ? usersList : <li>{this.state.info}</li>}</ul>
       </div>
     )
   }

@@ -3,11 +3,18 @@
 .settings{
   form{
     text-align: right;
+    @media (max-width: $breakpoint-medium) {
+      text-align: center;
+    }
   }
   label{
     display: inline-block;
     &:nth-of-type(even){
       margin-left: 30px;
+      @media (max-width: $breakpoint-medium) {
+        width: 100%;
+        margin-left: 0;
+      }
     }
     span{
       display: block;

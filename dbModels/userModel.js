@@ -7,7 +7,8 @@ const userSchema = new Schema({
 	avatarLink: String,
 	hashPassword: String,
 	salt: String,
-	isConfirmed: Boolean
+	isConfirmed: Boolean,
+	contacts: Array
 })
 
 module.exports = mongoose.model('user', userSchema)

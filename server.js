@@ -7,6 +7,7 @@ const { dbUser, siteName } = require('./config')
 const user = require('./actions/user/auth')
 const findUser = require('./actions/user/findUser')
 const userSettings = require('./actions/user/settings')
+const contacts = require('./actions/contacts/')
 
 const app = express()
 
@@ -19,21 +20,27 @@ app.use(express.static('static'))
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', siteName)
   res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization')
-  user.checkToken(app)
   next()
 })
 
-app.get('/', (req, res) => {
-  res.sendFile(`${__dirname}/client/public/`)
-})
+app.post('/api', (req, res) => { user.checkToken(req, res) })
 
-user.registration(app)
-user.confirmUser(app)
-user.authorization(app)
-user.logout(app)
+app.post('/api/register', (req, res) => { user.registration(req, res) })
 
-findUser(app)
-userSettings(app)
+app.post('/api/confirm', (req, res) => { user.confirmUser(req, res) })
+
+app.post('/api/auth', (req, res) => { user.authorization(req, res) })
+
+app.post('/api/logout', (req, res) => { user.logout(req, res) })
+
+app.post('/api/findUser', (req, res) => { findUser(req, res) })
+
+app.post('/api/settings', (req, res) => { userSettings(req, res) })
+
+app.post('/api/addContact', (req, res) => { contacts.add(req, res) })
+
+app.post('/api/getContacts', (req, res) => { contacts.get(req, res) })
+
 
 app.listen(port, err => { console.log(err ? `Error: ${err}` : `Listening on port: ${port}`) })
 

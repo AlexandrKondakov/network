@@ -1,16 +1,15 @@
 import React from 'react'
+import { Route, NavLink } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import './UserPage.scss'
-import { api, appName } from '../../config'
+import { appName } from '../../helpers'
 import { Settings } from '../settings'
-import { UsersSearch } from '../usersSearch'
+import { UserSearch } from '../userSearch'
+import { Messages } from '../messages'
+import { Contacts } from '../contacts'
 import emptyAva from '../../img/emptyAva.png'
 
 export class UserPage extends React.Component {
-
-  state = {
-    componentId: 3
-  }
 
   componentDidMount = () => {
     document.querySelector('title').innerText = this.props.userData.name
@@ -20,33 +19,35 @@ export class UserPage extends React.Component {
     document.querySelector('title').innerText = appName
   }
 
-  chooseContent = (id) => {
-    this.setState({componentId: id})
-  }
-
   render() {
-    const components = [
-      'test1',
-      'test2',
-      <UsersSearch />,
-      <Settings />
-    ]
+    const { avatarLink, id } = this.props.userData
 
-    const navList = ['Сообщения', 'Контакты', 'Поиск', 'Настройки']
-      .map((item, idx) => <li key={idx} onClick={() => this.chooseContent(idx)}>{ item }</li>)
-
-    const { avatarLink } = this.props.userData
+    const navList = [
+      {path: 'messages', title: 'Сообщения'},
+      {path: 'contacts', title: 'Контакты'},
+      {path: 'search', title: 'Поиск'},
+      {path: 'settings', title: 'Настройки'}
+    ].map((i, idx) =>
+      <li key={idx}><NavLink activeClassName="active-link" to={`/${id}/${i.path}`}>{i.title}</NavLink></li>
+    )
 
     return (
       <div className="user-page">
-        <ul className="user-page__nav">{ navList }</ul>
-        <div
-          className="user-page__ava"
-          style={{backgroundImage: `url(${avatarLink ? avatarLink : emptyAva})`}}
-        />
-        <div className="user-page-content">
-          <div className="user-page-content__inner">
-            {components[this.state.componentId]}
+        <div className="user-page__nav">
+          <ul>{ navList }</ul>
+        </div>
+        <div className="user-page__wrap">
+          <div
+            className="user-page__ava"
+            style={{backgroundImage: `url(${avatarLink ? avatarLink : emptyAva})`}}
+          />
+          <div className="user-page-content">
+            <div className="user-page-content__inner">
+              <Route path={`/${id}/messages`} component={ Messages }/>
+              <Route path={`/${id}/contacts`} component={ Contacts }/>
+              <Route path={`/${id}/search`} component={ UserSearch }/>
+              <Route path={`/${id}/settings`} component={ Settings }/>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React from 'react'
 import './Settings.scss'
-import {api} from '../../config'
+import { sendAjax, spaceNormalize } from '../../helpers'
 
 export class Settings extends React.Component {
 
@@ -43,16 +43,12 @@ export class Settings extends React.Component {
     for (let key in userData) {
       if (userData[key]) {
         typeof userData[key] === 'string'
-          ? payload.append(key, userData[key].trim())
+          ? payload.append(key, spaceNormalize(userData[key]))
           : payload.append(key, userData[key])
       }
     }
 
-    const response = await fetch(`${api}/settings`, {
-      method: 'POST',
-      body: payload
-    })
-
+    const response = await sendAjax('settings', payload, true)
     const body = await response.json()
 
     if (body.error) {

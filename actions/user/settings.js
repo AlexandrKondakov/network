@@ -7,6 +7,7 @@ const {
   inputsValidate,
   emailRegExp,
   latinRegExp,
+  getUserId,
   checkAndCreateDirectory
 } = require('../../helpers')
 
@@ -27,7 +28,7 @@ const setInputsError = async requestBody => {
     if (inputsError) return {text: inputsError, type: 'common'}
 
     if (requestBody.pass && !latinRegExp.test(requestBody.pass)) {
-      return {text: 'Пароль не должен содержать кириллицу', type: 'pass'}
+      return {text: 'Пароль содержит запрещенные символы', type: 'pass'}
     }
 
     if (requestBody.email) {
@@ -71,88 +72,85 @@ const upload = multer({
   }
 }).single('ava')
 
-const settings = (app) => {
-  app.post('/api/settings', (req, res) => {
+const settings = (req, res) => {
+  const id = getUserId(req)
 
-    const id = req.headers.referer.split(`${req.headers.origin}/`)[1]
+  avatarPath = `./static/avatars/${id}`
 
-    avatarPath = `./static/avatars/${id}`
+  upload(req, res, err => {
+    if (err) return res.send({message: 'Ошибка при загрузке изображения', error: {status: true, type: 'file'}})
 
-    upload(req, res, err => {
-      if (err) return res.send({message: 'Ошибка при загрузке изображения', error: {status: true, type: 'file'}})
+    if (req.inputError) {
+      return res.send({message: req.inputError.text, error: {status: true, type: req.inputError.type}})
+    }
 
-      if (req.inputError) {
-        return res.send({message: req.inputError.text, error: {status: true, type: req.inputError.type}})
-      }
+    if (req.fileError) return res.send({message: req.fileError, error: {status: true, type: 'file'}})
 
-      if (req.fileError) return res.send({message: req.fileError, error: {status: true, type: 'file'}})
+    let userChanges = avatarName ? true : Object.values(req.body).some(prop => !!prop)
 
-      let userChanges = avatarName ? true : Object.values(req.body).some(prop => !!prop)
+    if (userChanges) {
+      UserModel.findById(id, async (err, user) => {
+        if (err || !user) return errorResponse(res)
 
-      if (userChanges) {
-        UserModel.findById(id, async (err, user) => {
-          if (err || !user) return errorResponse(res)
+        const userData = {name: req.body.name ? req.body.name : ''}
 
-          const userData = {name: req.body.name ? req.body.name : ''}
+        const setUserPassAndSalt = (user, pass) => {
+          user.salt = crypto.randomBytes(128).toString('base64')
+          user.hashPassword = crypto.pbkdf2Sync(pass, user.salt, 1, 128, 'sha1')
+        }
 
-          const setUserPassAndSalt = (user, pass) => {
-            user.salt = crypto.randomBytes(128).toString('base64')
-            user.hashPassword = crypto.pbkdf2Sync(pass, user.salt, 1, 128, 'sha1')
+        const setPropsForDb = props => {
+          for (let prop in props) {
+            if (prop === 'pass') setUserPassAndSalt(user, props.pass)
+            else user[prop] = props[prop]
+          }
+        }
+
+        if (avatarName) {
+          user.avatarLink = `${req.protocol}://${req.headers.host}/avatars/${id}/${avatarName}`
+          userData.avatarLink = user.avatarLink
+        }
+        else {
+          const inputError = await setInputsError(req.body)
+
+          if (inputError) {
+            return res.send({message: inputError.text, error: {status: true, type: inputError.type}})
+          }
+        }
+
+        setPropsForDb(req.body)
+
+        user.save(err => {
+          if (err) return errorResponse(res)
+
+          const removeOldAvatars = avatars => {
+            avatars.forEach(avatar => {
+              if (avatar !== avatarName) {
+                fs.unlink(`${avatarPath}/${avatar}`, err => {
+                  if (err) console.log(`Ошибка при удалении файлов: ${err}`)
+                })
+              }
+            })
           }
 
-          const setPropsForDb = props => {
-            for (let prop in props) {
-              if (prop === 'pass') setUserPassAndSalt(user, props.pass)
-              else user[prop] = props[prop]
-            }
+          const checkOldAvatars = () => {
+            fs.readdir(avatarPath, (err, files) => {
+              if (err) return errorResponse(res)
+
+              if (files.length > 1) removeOldAvatars(files)
+
+              avatarName = ''
+
+              res.send({message: 'Данные успешно обновлены', userData})
+            })
           }
 
-          if (avatarName) {
-            user.avatarLink = `${req.protocol}://${req.headers.host}/avatars/${id}/${avatarName}`
-            userData.avatarLink = user.avatarLink
-          }
-          else {
-            const inputError = await setInputsError(req.body)
-
-            if (inputError) {
-              return res.send({message: inputError.text, error: {status: true, type: inputError.type}})
-            }
-          }
-
-          setPropsForDb(req.body)
-
-          user.save(err => {
-            if (err) return errorResponse(res)
-
-            const removeOldAvatars = avatars => {
-              avatars.forEach(avatar => {
-                if (avatar !== avatarName) {
-                  fs.unlink(`${avatarPath}/${avatar}`, err => {
-                    if (err) console.log(`Ошибка при удалении файлов: ${err}`)
-                  })
-                }
-              })
-            }
-
-            const checkOldAvatars = () => {
-              fs.readdir(avatarPath, (err, files) => {
-                if (err) return errorResponse(res)
-
-                if (files.length > 1) removeOldAvatars(files)
-
-                avatarName = ''
-
-                res.send({message: 'Данные успешно обновлены', userData})
-              })
-            }
-
-            if (avatarName) return checkOldAvatars()
-            else res.send({message: 'Данные успешно обновлены', userData})
-          })
+          if (avatarName) return checkOldAvatars()
+          else res.send({message: 'Данные успешно обновлены', userData})
         })
-      }
-      else errorResponse(res, 'Заполните данные')
-    })
+      })
+    }
+    else errorResponse(res, 'Заполните данные')
   })
 }
 

@@ -1,0 +1,71 @@
+@import '../../vars.scss';
+
+.user-list-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid $border-grey;
+  padding: 5px 0;
+  cursor: pointer;
+  justify-content: flex-end;
+  position: relative;
+  &_show {
+    align-items: start;
+    cursor: default;
+
+    .user-list-item__ava {
+      width: 200px;
+      height: 200px;
+    }
+    .user-list-item__actions {
+      display: flex;
+    }
+  }
+  &__name {
+    @media (max-width: $breakpoint-big) {
+      font-size: 14px;
+    }
+    @media (max-width: $breakpoint-medium) {
+      font-size: $font-size-small;
+    }
+  }
+  &__ava {
+    width: 60px;
+    height: 60px;
+    background-size: cover;
+    background-position: center;
+    margin-left: 20px;
+    @media (max-width: $breakpoint-middle) {
+      width: 55px;
+      height: 55px;
+      margin-left: 15px;
+    }
+  }
+  &__actions {
+    position: absolute;
+    display: none;
+    width: 500px;
+    flex-direction: column;
+    align-items: flex-end;
+    right: 220px;
+    top: 40px;
+    .ui-button {
+      font-size: $font-size-medium;
+    }
+
+    form {
+      width: 100%;
+      margin-top: 25px;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      height: 60px;
+      border: 1px solid $border-grey;
+      border-radius: 3px;
+      margin-bottom: 10px;
+      padding: 5px;
+      resize: none;
+    }
+  }
+}

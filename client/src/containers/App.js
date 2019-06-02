@@ -5,7 +5,7 @@ import { CustomHeader } from '../components/header'
 import { UserPage } from '../components/userPage'
 import { Page404 } from '../components/404'
 import { Auth } from '../components/auth'
-import { api } from '../config'
+import { api, sendAjax } from '../helpers'
 
 import {
   setIsLoggedIn,
@@ -51,12 +51,7 @@ class App extends Component {
   }
 
   confirmNewUser = async (id) => {
-    const response = await fetch(`${api}/confirm`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({id})
-    })
-
+    const response = await sendAjax('confirm', {id})
     const body = await response.json()
 
     if (body.error) {
@@ -89,21 +84,17 @@ class App extends Component {
         'Authorization': this.props.user.token
       })
     })
+
     const body = await response.json()
 
     if (response.status !== 200) throw Error(body.message)
     return body
   }
 
-  submitUserData = async (url, formData) => {
+  submitUserData = async (url, payload) => {
     this.setState({disableSubmitButtons: true})
 
-    const response = await fetch(`${api}/${url}`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(formData)
-    })
-
+    const response = await sendAjax(url, payload)
     const body = await response.json()
 
     this.checkResponseSetProps(body)
@@ -157,8 +148,12 @@ class App extends Component {
 
     const content = (
       <Switch>
-        <Route exact path='/' render={() => user.isLoggedIn ? <Redirect to={`/${user.id}`} /> : authPage} />
-        <Route path='/confirm' render={() => user.isLoggedIn ? <Redirect to={`/${user.id}`} /> : auth} />
+        <Route exact path='/'
+          render={() => user.isLoggedIn ? <Redirect to={`/${user.id}/messages`} /> : authPage}
+        />
+        <Route path='/confirm'
+          render={() => user.isLoggedIn ? <Redirect to={`/${user.id}/messages`} /> : auth}
+        />
         <Route path={`/${user.id}`}
           render={() => user.isLoggedIn ? <UserPage className="user-page" userData={user}/> : <Redirect to='/'/>}
         />

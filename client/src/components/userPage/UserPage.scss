@@ -4,27 +4,63 @@
   @media (max-width: $breakpoint-small) {
     padding: 0 20px;
   }
+  &__wrap{
+    display: flex;
+    position: relative;
+  }
   &__nav{
     margin-bottom: 15px;
+    position: relative;
+    @media (max-width: $breakpoint-middle) {
+      display: flex;
+      width: 80%;
+      align-items: center;
+      margin-bottom: 0;
+      height: 50px;
+      font-size: $font-size-normal;
+    }
     li{
       display: inline-block;
       font-weight: bold;
       margin-right: 30px;
-      cursor: pointer;
+      @media (max-width: $breakpoint-middle) {
+        margin-bottom: 8px;
+      }
+
+      a {
+        text-decoration: none;
+        color: $font-black;
+      }
+
+      .active-link {
+        color: $error-color;
+      }
     }
   }
   &__ava{
-    display: inline-block;
+    flex: none;
     width: 250px;
     height: 250px;
     background-size: cover;
     background-position: center;
+    @media (max-width: $breakpoint-middle) {
+      width: 140px;
+      height: 140px;
+    }
+    @media (max-width: $breakpoint-medium) {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      right: 0;
+      top: -54px;
+    }
   }
   &-content{
-    display: inline-block;
-    width: 730px;
+    flex: auto;
     margin-left: 20px;
-    vertical-align: top;
+    @media (max-width: $breakpoint-medium) {
+      margin-left: 0;
+    }
     &__inner{
       border-top: 1px solid $border-grey;
       padding: 10px 0;
