@@ -1,11 +1,15 @@
-const UserModel = require('../../dbModels/userModel')
+const UserModel = require('../../dbModels/user')
 const { errorResponse, getUserId } = require('../../helpers')
 
 exports.add = (req, res) => {
-  if (!req.body.user) return false;
+  if (!req.body.user) { return }
 
   UserModel.findById(getUserId(req), (error, user) => {
     if (error || !user) return errorResponse(res)
+
+    if (user.contacts.some(id => id === req.body.user)) {
+      return errorResponse(res, 'Пользователь уже добавлен')
+    }
 
     UserModel.findById(req.body.user, (err, userForContacts) => {
       if (err || !userForContacts) return errorResponse(res)
@@ -35,4 +39,6 @@ exports.get = (req, res) => {
   })
 }
 
-exports.remove = (req, res) => {}
+exports.remove = (req, res) => {
+
+}

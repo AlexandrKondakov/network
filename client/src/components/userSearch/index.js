@@ -1,15 +1,15 @@
 import React from 'react'
-import { UserListItem } from '../userListItem'
+import { connect } from 'react-redux'
+import UserListItem from '../userListItem'
 import './UserSearch.scss'
 import { sendAjax, spaceNormalize } from '../../helpers'
+import { setInformer } from '../../actions/CommonActions'
 
-export class UserSearch extends React.Component {
+class UserSearch extends React.Component {
 
   state = {
     userForSearch: '',
     foundUsers: [],
-    errorResponse: false,
-    info: '',
   }
 
   changeUserForSearch = e => {
@@ -24,30 +24,20 @@ export class UserSearch extends React.Component {
     const response = await sendAjax('findUser', {user: spaceNormalize(this.state.userForSearch)})
     const body = await response.json()
 
-    if (body.error) {
-      return this.setState({
-        info: body.message,
-        errorResponse: !!body.error
-      })
-    }
+    if (body.error) return this.props.informerAction({text: body.message, isError: true})
 
     if (!body.usersList.length) {
-      return this.setState({
-        foundUsers: [],
-        info: 'Пользователи не найдены...',
-        errorResponse: false
-      })
+      this.setState({foundUsers: []})
+      return this.props.informerAction({text: 'Пользователи не найдены', isError: false})
     }
 
-    this.setState({
-      info: '',
-      errorResponse: false,
-      foundUsers: body.usersList
-    })
+    this.setState({foundUsers: body.usersList})
   }
 
   render() {
-    const usersList = this.state.foundUsers.map((user, idx) => <UserListItem user={user} key={idx}/>)
+    const usersList = this.state.foundUsers.map((user, idx) => (
+      <UserListItem user={user} key={idx} isRemoveUser={false} />
+    ))
 
     return (
       <div className="users-search">
@@ -59,12 +49,17 @@ export class UserSearch extends React.Component {
           />
           <button className="users-search__submit" />
         </form>
-        <ul>{this.state.foundUsers.length ? usersList : <li>{this.state.info}</li>}</ul>
+        <ul>{ this.state.foundUsers.length ? usersList : '' }</ul>
       </div>
     )
   }
 }
 
+const mapDispatchToProps = dispatch => ({
+  informerAction: text => dispatch(setInformer(text)),
+})
+
+export default connect(null, mapDispatchToProps)(UserSearch)
 
 
 

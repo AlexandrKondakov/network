@@ -3,8 +3,39 @@
 .header-wrapper{
 	background: $font-black;
 	height: 50px;
+	position: relative;
 	@media (max-width: $breakpoint-medium) {
 		height: 35px;
+	}
+}
+.informer {
+	position: fixed;
+	padding: 10px;
+	font-size: $font-size-normal;
+	opacity: 0;
+	right: 0;
+	transition: opacity .2s;
+	color: white;
+	z-index: 5;
+
+	@media (max-width: $breakpoint-middle) {
+		width: 95%;
+		left: 50%;
+		transform: translate(-50%,-50%);
+	}
+
+	@media (max-width: $breakpoint-medium) {
+		top: 40px;
+		padding: 5px;
+		font-size: $font-size-medium;
+	}
+
+	&_show {
+		opacity: 1;
+		background: $form-green;
+	}
+	&_error {
+		background: $error-color;
 	}
 }
 .header{

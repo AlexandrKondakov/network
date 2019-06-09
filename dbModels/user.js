@@ -11,4 +11,4 @@ const userSchema = new Schema({
 	contacts: Array
 })
 
-module.exports = mongoose.model('user', userSchema)
+module.exports = mongoose.model('users', userSchema)

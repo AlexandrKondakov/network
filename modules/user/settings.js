@@ -1,7 +1,7 @@
 const multer  = require('multer')
 const fs = require('fs')
 const crypto = require('crypto')
-const UserModel = require('../../dbModels/userModel')
+const UserModel = require('../../dbModels/user')
 const {
   errorResponse,
   inputsValidate,
@@ -25,18 +25,18 @@ const setInputsError = async requestBody => {
   if (Object.keys(requestBody).length) {
     const inputsError = inputsValidate(Object.values(requestBody), false)
 
-    if (inputsError) return {text: inputsError, type: 'common'}
+    if (inputsError) return inputsError
 
     if (requestBody.pass && !latinRegExp.test(requestBody.pass)) {
-      return {text: 'Пароль содержит запрещенные символы', type: 'pass'}
+      return 'Пароль содержит запрещенные символы'
     }
 
     if (requestBody.email) {
-      if (!emailRegExp.test(requestBody.email)) return {text: 'Укажите корректный email', type: 'email'}
+      if (!emailRegExp.test(requestBody.email)) return 'Укажите корректный email'
 
       const isUsed = await checkEmailUnique(requestBody.email)
 
-      if (isUsed) return {text: 'Пользователь с таким email уже зарегистрирован', type: 'email'}
+      if (isUsed) return 'Пользователь с таким email уже зарегистрирован'
     }
 
     return false
@@ -58,12 +58,12 @@ const upload = multer({
     const inputsError = await setInputsError(req.body)
 
     if (inputsError) {
-      req.inputError = inputsError
+      req.error = inputsError
       return cb(null, false)
     }
 
     if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
-      req.fileError = 'Допустимые форматы файла - jpg, png'
+      req.error = 'Допустимые форматы файла - jpg, png'
       return cb(null, false)
     }
 
@@ -78,13 +78,9 @@ const settings = (req, res) => {
   avatarPath = `./static/avatars/${id}`
 
   upload(req, res, err => {
-    if (err) return res.send({message: 'Ошибка при загрузке изображения', error: {status: true, type: 'file'}})
+    if (err) return errorResponse(res, 'Ошибка при загрузке изображения')
 
-    if (req.inputError) {
-      return res.send({message: req.inputError.text, error: {status: true, type: req.inputError.type}})
-    }
-
-    if (req.fileError) return res.send({message: req.fileError, error: {status: true, type: 'file'}})
+    if (req.error) return errorResponse(res, req.error)
 
     let userChanges = avatarName ? true : Object.values(req.body).some(prop => !!prop)
 
@@ -113,9 +109,7 @@ const settings = (req, res) => {
         else {
           const inputError = await setInputsError(req.body)
 
-          if (inputError) {
-            return res.send({message: inputError.text, error: {status: true, type: inputError.type}})
-          }
+          if (inputError) return errorResponse(res, inputError)
         }
 
         setPropsForDb(req.body)

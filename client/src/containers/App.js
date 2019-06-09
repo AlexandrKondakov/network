@@ -1,27 +1,18 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
-import { CustomHeader } from '../components/header'
-import { UserPage } from '../components/userPage'
+import { Route, Redirect, Switch } from 'react-router-dom'
+import Header from '../components/header'
+import UserPage from '../components/userPage'
 import { Page404 } from '../components/404'
 import { Auth } from '../components/auth'
 import { api, sendAjax } from '../helpers'
-
-import {
-  setIsLoggedIn,
-  setAvatarLink,
-  setUserName,
-  setToken,
-  setId
-} from '../actions/UserActions'
-
+import { setInformer } from '../actions/CommonActions'
+import { setIsLoggedIn, setAvatarLink, setUserName, setToken, setId } from '../actions/UserActions'
 import './App.scss'
 
 class App extends Component {
   state = {
     disableSubmitButtons: false,
-    errorResponse: false,
-    serverMessage: '',
     pageLoadingState: true,
   }
 
@@ -41,7 +32,7 @@ class App extends Component {
             const path = window.location.pathname, id = path.split('/confirm/')[1]
 
             this.checkResponseSetProps(res)
-            this.props.setIsLoggedInAction(res.isLoggedIn)
+            this.props.isLoggedInAction(res.isLoggedIn)
             this.setState({pageLoadingState: false})
 
             if (path.includes('/confirm/') && id.length > 5 && id.length < 50) this.confirmNewUser(id)
@@ -54,25 +45,20 @@ class App extends Component {
     const response = await sendAjax('confirm', {id})
     const body = await response.json()
 
-    if (body.error) {
-      this.setState({
-        serverMessage: body.message,
-        errorResponse: !!body.error
-      })
-    }
+    if (body.error) return this.props.informerAction({text: body.message, isError: true})
+
+    this.props.informerAction({text: 'Вы успешно зарегистрировались', isError: false})
   }
 
   setTokenFromLocalStorage = async () => {
-     if (localStorage.getItem('token')) await this.props.setTokenAction(localStorage.getItem('token'))
+     if (localStorage.getItem('token')) await this.props.tokenAction(localStorage.getItem('token'))
   }
 
   checkResponseSetProps(res) {
-    if (res.message) this.setState({serverMessage: res.message})
-
     if (res.userData) {
-      res.userData.name && this.props.setUserNameAction(res.userData.name)
-      res.userData.id && this.props.setUserIdAction(res.userData.id)
-      res.userData.avatarLink && this.props.setAvatarLinkAction(res.userData.avatarLink)
+      res.userData.name && this.props.userNameAction(res.userData.name)
+      res.userData.id && this.props.userIdAction(res.userData.id)
+      res.userData.avatarLink && this.props.avatarLinkAction(res.userData.avatarLink)
     }
   }
 
@@ -97,29 +83,26 @@ class App extends Component {
     const response = await sendAjax(url, payload)
     const body = await response.json()
 
+    this.setState({disableSubmitButtons: false})
+    if (body.error) return this.props.informerAction({text: body.message, isError: true})
+
     this.checkResponseSetProps(body)
 
     if (body.token) {
       localStorage.setItem('token', body.token)
-      this.props.setTokenAction(body.token)
+      this.props.tokenAction(body.token)
     }
 
-    this.props.setIsLoggedInAction(body.isLoggedIn ? body.isLoggedIn : false)
-
-    this.setState({
-      disableSubmitButtons: false,
-      errorResponse: !!body.error
-    })
+    this.props.isLoggedInAction(body.isLoggedIn ? body.isLoggedIn : false)
+    this.props.informerAction({text: body.message, isError: false})
   }
 
   render() {
-    const { user, common } = this.props
+    const { user } = this.props
 
     const auth = (
       <div>
-        <div className={this.state.errorResponse ? 'auth__message auth__message-error' : 'auth__message'}>
-          { this.state.serverMessage }
-        </div>
+        <div className="auth__message">Авторизуйтесь, или зарегистрируйтесь</div>
         <Auth
           submitFunction={this.submitUserData}
           submitUrl="auth"
@@ -155,39 +138,30 @@ class App extends Component {
           render={() => user.isLoggedIn ? <Redirect to={`/${user.id}/messages`} /> : auth}
         />
         <Route path={`/${user.id}`}
-          render={() => user.isLoggedIn ? <UserPage className="user-page" userData={user}/> : <Redirect to='/'/>}
+          render={() => user.isLoggedIn ? <UserPage className="user-page"/> : <Redirect to='/'/>}
         />
         <Route component={ Page404 }/>
       </Switch>
     )
 
     return (
-      <Router>
-        <div className="App">
-          <CustomHeader
-            logoutAction={ this.props.setIsLoggedInAction }
-            userData={ user }
-          />
-          <div className="container">{this.state.pageLoadingState ? '' : content}</div>
-        </div>
-      </Router>
+      <div className="App">
+        <Header />
+        <div className="container">{this.state.pageLoadingState ? '' : content}</div>
+      </div>
     )
   }
 }
 
-const mapStateToProps = store => {
-  return {
-    user: store.user,
-    common: store.common,
-  }
-}
+const mapStateToProps = store => ({user: store.user})
 
 const mapDispatchToProps = dispatch => ({
-  setIsLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
-  setUserNameAction: userName => dispatch(setUserName(userName)),
-  setTokenAction: token => dispatch(setToken(token)),
-  setUserIdAction: id => dispatch(setId(id)),
-  setAvatarLinkAction: link => dispatch(setAvatarLink(link)),
+  isLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
+  userNameAction: userName => dispatch(setUserName(userName)),
+  tokenAction: token => dispatch(setToken(token)),
+  userIdAction: id => dispatch(setId(id)),
+  avatarLinkAction: link => dispatch(setAvatarLink(link)),
+  informerAction: text => dispatch(setInformer(text)),
 })
 
 export default connect(

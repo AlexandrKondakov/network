@@ -1,18 +1,18 @@
 import React from 'react'
 import { Route, NavLink } from 'react-router-dom'
-import PropTypes from 'prop-types'
-import './UserPage.scss'
+import { connect } from 'react-redux'
 import { appName } from '../../helpers'
-import { Settings } from '../settings'
-import { UserSearch } from '../userSearch'
+import Settings from '../settings'
+import UserSearch from '../userSearch'
 import { Messages } from '../messages'
 import { Contacts } from '../contacts'
 import emptyAva from '../../img/emptyAva.png'
+import './UserPage.scss'
 
-export class UserPage extends React.Component {
+class UserPage extends React.Component {
 
   componentDidMount = () => {
-    document.querySelector('title').innerText = this.props.userData.name
+    document.querySelector('title').innerText = this.props.user.name
   }
 
   componentWillUnmount = () => {
@@ -20,7 +20,7 @@ export class UserPage extends React.Component {
   }
 
   render() {
-    const { avatarLink, id } = this.props.userData
+    const { avatarLink, id } = this.props.user
 
     const navList = [
       {path: 'messages', title: 'Сообщения'},
@@ -43,10 +43,10 @@ export class UserPage extends React.Component {
           />
           <div className="user-page-content">
             <div className="user-page-content__inner">
-              <Route path={`/${id}/messages`} component={ Messages }/>
-              <Route path={`/${id}/contacts`} component={ Contacts }/>
-              <Route path={`/${id}/search`} component={ UserSearch }/>
-              <Route path={`/${id}/settings`} component={ Settings }/>
+              <Route path={`/${id}/messages`} render={() => <Messages /> }/>
+              <Route path={`/${id}/contacts`} render={() => <Contacts /> }/>
+              <Route path={`/${id}/search`} render={() => <UserSearch /> }/>
+              <Route path={`/${id}/settings`} render={() => <Settings /> }/>
             </div>
           </div>
         </div>
@@ -55,6 +55,6 @@ export class UserPage extends React.Component {
   }
 }
 
-UserPage.propTypes = {
-  userData: PropTypes.object.isRequired,
-}
+const mapStateToProps = store => ({user: store.user})
+
+export default connect(mapStateToProps)(UserPage)

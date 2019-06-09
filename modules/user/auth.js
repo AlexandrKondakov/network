@@ -1,4 +1,4 @@
-const UserModel = require('../../dbModels/userModel')
+const UserModel = require('../../dbModels/user')
 const jwt = require('jsonwebtoken')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
@@ -17,8 +17,6 @@ const {
 	getUserId
 } = require('../../helpers')
 
-
-const authText = 'Авторизуйтесь, или зарегистрируйтесь'
 const userFields = {
   usernameField: 'email',
   passwordField: 'pass',
@@ -64,9 +62,9 @@ passport.use('register', new LocalStrategy(userFields,
 			if (user) return done(null, true, 'Пользователь с таким email уже зарегистрирован')
 
 			newUser.save()
-				.then(() =>
-					sendMail(email, `${siteName}/confirm/${newUser._id}`, `Регистрация на сайте ${siteName}`)
-				)
+				// .then(() =>
+				// 	sendMail(email, `${siteName}/confirm/${newUser._id}`, `Регистрация на сайте ${siteName}`)
+				// )
         .then(() =>
           done(null, false, `На ${email} отправлена ссылка для подтверждения регистрации, перейдите по ней.`)
         )
@@ -97,7 +95,7 @@ exports.checkToken = (req, res) => {
 		if (err || !user) {
 			return res.send({
 				isLoggedIn: false,
-				message: err ? commonError : authText,
+				message: commonError,
 				error: !!err
 			})
 		}
@@ -132,8 +130,7 @@ exports.authorization = (req, res) => {
 				avatarLink: user.avatarLink
 			},
 			token: `JWT ${token}`,
-			isLoggedIn: true,
-			message: authText
+			isLoggedIn: true
 		})
 	})(req, res)
 }

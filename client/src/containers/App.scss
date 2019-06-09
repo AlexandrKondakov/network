@@ -74,11 +74,6 @@ ol, ul { list-style: none; }
 			text-align: center;
 			height: 20px;
 			letter-spacing: .3px;
-
-			&-error{
-				color: $error-color;
-   			font-weight: bold;
-			}
     }
   }
 }

@@ -3,15 +3,16 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const https = require('https')
 const mongoose = require('mongoose')
-const { dbUser, siteName } = require('./config')
-const user = require('./actions/user/auth')
-const findUser = require('./actions/user/findUser')
-const userSettings = require('./actions/user/settings')
-const contacts = require('./actions/contacts/')
+const { dbNetwork, siteName } = require('./config')
+const user = require('./modules/user/auth')
+const findUser = require('./modules/user/findUser')
+const userSettings = require('./modules/user/settings')
+const contacts = require('./modules/contacts')
+const messages = require('./modules/messages')
 
 const app = express()
 
-mongoose.connect(dbUser, { useNewUrlParser: true })
+mongoose.connect(dbNetwork, { useNewUrlParser: true })
 mongoose.connection.on('error', e => { console.log(`MongoDB connection error: ${e}`) })
 
 app.use(bodyParser.json())
@@ -39,7 +40,11 @@ app.post('/api/settings', (req, res) => { userSettings(req, res) })
 
 app.post('/api/addContact', (req, res) => { contacts.add(req, res) })
 
+app.post('/api/removeContact', (req, res) => { contacts.remove(req, res) })
+
 app.post('/api/getContacts', (req, res) => { contacts.get(req, res) })
+
+app.post('/api/sendMessage', (req, res) => { messages.send(req, res) })
 
 
 app.listen(port, err => { console.log(err ? `Error: ${err}` : `Listening on port: ${port}`) })

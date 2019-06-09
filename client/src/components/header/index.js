@@ -1,23 +1,31 @@
 import React from 'react'
 import './Header.scss'
 import { appName, sendAjax } from '../../helpers'
-import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
+import { setIsLoggedIn } from '../../actions/UserActions'
+import { setInformer } from '../../actions/CommonActions'
 
-export class CustomHeader extends React.Component {
+class Header extends React.Component {
 
 	state = {
-		userListIsOpen: false
+		userListIsOpen: false,
+	}
+
+	componentDidUpdate() {
+		if (this.props.common.informer.text) {
+			setTimeout(() => {this.props.informerAction({text: '', isError: false})}, 5000)
+		}
 	}
 
 	logout = async () => {
 		const response = await sendAjax('logout')
 		const body = await response.json()
 
-		if (body.error) console.log(body.message)
+		if (body.error) return this.props.informerAction({text: body.message, isError: true})
 
 		if (localStorage.getItem('token')) localStorage.removeItem('token')
 
-		this.props.logoutAction(false)
+		this.props.isLoggedInAction(false)
 		this.toggleUserList()
 	}
 
@@ -34,18 +42,24 @@ export class CustomHeader extends React.Component {
 		document[open ? 'addEventListener' : 'removeEventListener']('click', this.setUserListListener)
 	}
 
+	getInformerClassList = () => {
+		const { text, isError } = this.props.common.informer
+		return `${text && 'informer_show'} ${isError ? 'informer_error' : ''} informer`
+	}
+
 	render() {
+		const { user, common } = this.props
 		return (
 			<div className="header-wrapper">
 				<header className="header">
 					<div className="logo">{ appName }</div>
-					{this.props.userData.isLoggedIn &&
+					{user.isLoggedIn &&
 						<div className="navigation">
 							<div className="user">
 								<span
 									className="user-name"
 									onClick={() => { this.toggleUserList(true) }}
-								>{ this.props.userData.name }</span>
+								>{ user.name }</span>
 								<ul
 									className={this.state.userListIsOpen ? 'user-list user-list__open' : 'user-list'}
 									ref="userNavList"
@@ -56,12 +70,27 @@ export class CustomHeader extends React.Component {
 						</div>
 					}
 				</header>
+				<div className={ this.getInformerClassList() }>
+					{common.informer.isError ? `Ошибка: ${common.informer.text}` : common.informer.text }
+				</div>
 			</div>
 		)
 	}
 }
 
-CustomHeader.propTypes = {
-	logoutAction: PropTypes.func.isRequired,
-	userData: PropTypes.object.isRequired,
+const mapStateToProps = store => {
+	return {
+		user: store.user,
+		common: store.common,
+	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	isLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
+	informerAction: text => dispatch(setInformer(text)),
+})
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps,
+)(Header)

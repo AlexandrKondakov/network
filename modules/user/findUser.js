@@ -1,4 +1,4 @@
-const UserModel = require('../../dbModels/userModel')
+const UserModel = require('../../dbModels/user')
 const { errorResponse } = require('../../helpers')
 
 const findUser = (req, res) => {

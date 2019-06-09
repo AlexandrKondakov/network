@@ -1,8 +1,11 @@
 import React from 'react'
+import { connect } from 'react-redux'
 import './Settings.scss'
 import { sendAjax, spaceNormalize } from '../../helpers'
+import { setAvatarLink, setUserName } from '../../actions/UserActions'
+import { setInformer } from '../../actions/CommonActions'
 
-export class Settings extends React.Component {
+class Settings extends React.Component {
 
   state = {
     userData: {
@@ -12,23 +15,16 @@ export class Settings extends React.Component {
       ava: null
     },
     passConfirm: '',
-    errorType: '',
-    errorMessage: ''
-  }
-
-  cleanErrorState = () => {
-    this.setState({errorType: '', errorMessage: ''})
   }
 
   loadAva = (file) => {
     if (file[0] && file[0].size > 3000000) {
-      return this.setState({errorType: 'file', errorMessage: 'Максимальный размер файла 3 мб !'})
+      return this.props.informerAction({text: 'Максимальный размер файла 3 мб', isError: true})
     }
 
     const userData = {...this.state.userData}
     userData.ava = file[0]
     this.setState({userData})
-    this.cleanErrorState()
   }
 
   sendSettings = async e => {
@@ -36,7 +32,7 @@ export class Settings extends React.Component {
 
     const { userData } = this.state
 
-    if (userData.pass !== this.state.passConfirm) return;
+    if (userData.pass !== this.state.passConfirm) { return }
 
     const payload = new FormData()
 
@@ -51,11 +47,15 @@ export class Settings extends React.Component {
     const response = await sendAjax('settings', payload, true)
     const body = await response.json()
 
-    if (body.error) {
-      if (typeof body.error === 'boolean') return this.setState({errorType: 'common', errorMessage: body.message})
-      if (body.error.type) return this.setState({errorType: body.error.type, errorMessage: body.message})
+    const setNewStoreProps = user => {
+      if (user.name) this.props.userNameAction(user.name)
+      if (user.avatarLink) this.props.avatarLinkAction(user.avatarLink)
     }
 
+    if (body.error) return this.props.informerAction({text: body.message, isError: true})
+
+    if (body.userData) setNewStoreProps(body.userData)
+    this.props.informerAction({text: body.message, isError: false})
   }
 
   changeUserDataProp = (prop, e) => {
@@ -71,39 +71,36 @@ export class Settings extends React.Component {
       <div className="settings">
         <form onSubmit={this.sendSettings}>
           <label>
-            <span className={this.state.errorType === 'name' ? 'error' : ''}>
-              {this.state.errorType === 'name' ? this.state.errorMessage : 'Имя'}
-            </span>
+            <span>Имя</span>
             <input
-              type="text" maxLength="30" autoComplete="off"
-              className="ui-input" onChange={(e) => { this.changeUserDataProp('name', e) }}
+              maxLength="30" autoComplete="off" className="ui-input"
+              onChange={(e) => { this.changeUserDataProp('name', e) }}
             />
           </label>
           <label>
-            <span className={this.state.errorType === 'email' ? 'error' : ''}>Почта</span>
+            <span>Почта</span>
             <input
-              type="email" maxLength="30" autoComplete="off"
-              className="ui-input" onChange={(e) => { this.changeUserDataProp('email', e) }}
+              maxLength="30" autoComplete="off" className="ui-input"
+              onChange={(e) => { this.changeUserDataProp('email', e) }}
             />
           </label>
           <label>
-            <span className={this.state.errorType === 'pass' ? 'error' : ''}>Новый пароль</span>
+            <span>Новый пароль</span>
             <input
-              type="password" maxLength="30" autoComplete="off"
-              className="ui-input" onChange={(e) => { this.changeUserDataProp('pass', e) }}
+              maxLength="30" autoComplete="off" className="ui-input"
+              onChange={(e) => { this.changeUserDataProp('pass', e) }}
             />
           </label>
           <label>
             <span>Повторите пароль</span>
             <input
-              type="password" maxLength="30" autoComplete="off"
-              className="ui-input" onChange={(e) => { this.changeUserDataProp('passConfirm', e) }}
+              maxLength="30" autoComplete="off" className="ui-input"
+              onChange={(e) => { this.changeUserDataProp('passConfirm', e) }}
             />
           </label>
-          <label className="file-wrapper">
-            <span className="file-wrapper__error">{this.state.errorType === 'file' && this.state.errorMessage}</span>
+          <label className="file-wrapper ui-input ">
             <input type="file" accept=".jpg, .jpeg, .png" onChange={(e) => this.loadAva(e.target.files)}/>
-            <span className="ui-input file">{this.state.userData.ava ? 'Файл прикреплен' : 'Загрузить аватар'}</span>
+            <span className="file">{this.state.userData.ava ? 'Файл прикреплен' : 'Загрузить аватар'}</span>
           </label>
          <div><button className="ui-button">Отправить</button></div>
         </form>
@@ -111,3 +108,16 @@ export class Settings extends React.Component {
     )
   }
 }
+
+const mapStateToProps = store => ({user: store.user})
+
+const mapDispatchToProps = dispatch => ({
+  userNameAction: userName => dispatch(setUserName(userName)),
+  avatarLinkAction: link => dispatch(setAvatarLink(link)),
+  informerAction: text => dispatch(setInformer(text)),
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Settings)
