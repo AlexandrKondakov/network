@@ -66,7 +66,7 @@ const UserListItem = props => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  informerAction: text => dispatch(setInformer(text)),
+  informerAction: text => dispatch(setInformer(text))
 })
 
 export default connect(null, mapDispatchToProps)(UserListItem)

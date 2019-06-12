@@ -12,9 +12,11 @@ class Header extends React.Component {
 	}
 
 	componentDidUpdate() {
-		if (this.props.common.informer.text) {
-			setTimeout(() => {this.props.informerAction({text: '', isError: false})}, 5000)
-		}
+		const { user, common, informerAction } = this.props
+
+		if (common.informer.text) setTimeout(() => {informerAction({text: '', isError: false})}, 5000)
+
+		document.querySelector('title').innerText = user.isLoggedIn ? user.name : appName
 	}
 
 	logout = async () => {
@@ -78,19 +80,10 @@ class Header extends React.Component {
 	}
 }
 
-const mapStateToProps = store => {
-	return {
-		user: store.user,
-		common: store.common,
-	}
-}
-
+const mapStateToProps = store => ({user: store.user, common: store.common})
 const mapDispatchToProps = dispatch => ({
 	isLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
 	informerAction: text => dispatch(setInformer(text)),
 })
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps,
-)(Header)
+export default connect(mapStateToProps, mapDispatchToProps)(Header)

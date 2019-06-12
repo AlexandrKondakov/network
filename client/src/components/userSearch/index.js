@@ -41,7 +41,7 @@ class UserSearch extends React.Component {
 
     return (
       <div className="users-search">
-        <form onSubmit={ this.searchUsers }>
+        <form onSubmit={ this.searchUsers } className="users-search__form">
           <input
             className="users-search__searching" type="text"
             autoComplete="off" maxLength="40" placeholder="Введите имя пользователя"

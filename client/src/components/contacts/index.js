@@ -1,24 +1,19 @@
 import React from 'react'
-import { sendAjax } from '../../helpers'
-import emptyAva from '../../img/emptyAva.png'
+import { connect } from 'react-redux'
+import UserListItem from '../userListItem'
 
-export class Contacts extends React.Component {
+const Contacts = props => {
+  const { contacts } = props.user
 
-  componentDidMount() {
-    this.getContacts()
-  }
-
-  getContacts = async () => {
-    const response = await sendAjax('getContacts')
-    const body = await response.json()
-
-  }
-
-  render() {
-    return (
-      <div className="contacts">
-        Contacts
-      </div>
-    )
-  }
+  return (
+    <ul className="contacts">
+      { contacts.length
+        ? contacts.map((user, idx) => <UserListItem user={user} key={idx} isRemoveUser={true}/>)
+        : 'У вас нет контактов' }
+    </ul>
+  )
 }
+
+const mapStateToProps = store => ({user: store.user})
+
+export default connect(mapStateToProps)(Contacts)

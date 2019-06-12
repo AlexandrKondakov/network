@@ -45,3 +45,5 @@ exports.checkAndCreateDirectory = (targetDir, isRelativeToScript = false) => {
     return curDir
   }, initDir)
 }
+
+exports.fieldsForPassport = {usernameField: 'email', passwordField: 'pass', passReqToCallback: true, session: false}

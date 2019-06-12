@@ -22,21 +22,23 @@ exports.add = (req, res) => {
   })
 }
 
-exports.get = (req, res) => {
-  UserModel.findById(getUserId(req), (error, user) => {
-    if (error || !user) return errorResponse(res)
+exports.get = async idList => {
+  if (!idList.length) return []
 
-    const contacts = []
+  const contactList = []
 
-    for (let i = 0, len = user.contacts.length; i < len; i++) {
-      UserModel.findById(user.contacts[i], (err, userFromContacts) => {
-        if (err) return errorResponse(res)
+  for (let i = 0, len = idList.length; i < len; i++) {
+    await UserModel.findById(idList[i], (err, user) => {
+      if (err || !user) { return }
 
-        contacts.push({name: userFromContacts.name, avatarLink: userFromContacts.avatarLink})
-        if (i === len - 1) res.send({contacts})
+      contactList.push({
+        id: user._id,
+        name: user.name,
+        avatarLink: user.avatarLink
       })
-    }
-  })
+    })
+  }
+  return contactList
 }
 
 exports.remove = (req, res) => {

@@ -47,12 +47,12 @@ class Settings extends React.Component {
     const response = await sendAjax('settings', payload, true)
     const body = await response.json()
 
+    if (body.error) return this.props.informerAction({text: body.message, isError: true})
+
     const setNewStoreProps = user => {
       if (user.name) this.props.userNameAction(user.name)
       if (user.avatarLink) this.props.avatarLinkAction(user.avatarLink)
     }
-
-    if (body.error) return this.props.informerAction({text: body.message, isError: true})
 
     if (body.userData) setNewStoreProps(body.userData)
     this.props.informerAction({text: body.message, isError: false})
@@ -62,7 +62,7 @@ class Settings extends React.Component {
     if (prop === 'passConfirm') return this.setState({passConfirm: e.target.value})
 
     const userData = {...this.state.userData}
-    userData[prop] = e.target.value
+    userData[prop] = prop === 'name' ? e.target.value.toLowerCase() : e.target.value
     this.setState({userData})
   }
 
@@ -110,14 +110,10 @@ class Settings extends React.Component {
 }
 
 const mapStateToProps = store => ({user: store.user})
-
 const mapDispatchToProps = dispatch => ({
   userNameAction: userName => dispatch(setUserName(userName)),
   avatarLinkAction: link => dispatch(setAvatarLink(link)),
   informerAction: text => dispatch(setInformer(text)),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Settings)
+export default connect(mapStateToProps, mapDispatchToProps)(Settings)

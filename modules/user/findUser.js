@@ -1,5 +1,5 @@
 const UserModel = require('../../dbModels/user')
-const { errorResponse } = require('../../helpers')
+const { errorResponse, getUserId } = require('../../helpers')
 
 const findUser = (req, res) => {
   if (!req.body.user) return false;
@@ -11,15 +11,18 @@ const findUser = (req, res) => {
 
     const usersList = []
 
-    if (users.length) {
-      for (let i = 0, len = users.length; i < len; i++) {
-        usersList.push({
-          name: users[i].name,
-          id: users[i]._id,
-          avatarLink: users[i].avatarLink
-        })
-        if (i === 50) break
-      }
+    if (!users.length) return res.send({usersList})
+
+    for (let i = 0, len = users.length; i < len; i++) {
+      if (users[i]._id.toString() === getUserId(req) || !users[i].isConfirmed) continue
+
+      usersList.push({
+        name: users[i].name,
+        id: users[i]._id,
+        avatarLink: users[i].avatarLink
+      })
+
+      if (i === 50) break
     }
 
     res.send({usersList})

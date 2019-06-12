@@ -4,9 +4,8 @@ const bodyParser = require('body-parser')
 const https = require('https')
 const mongoose = require('mongoose')
 const { dbNetwork, siteName } = require('./config')
-const user = require('./modules/user/auth')
-const findUser = require('./modules/user/findUser')
-const userSettings = require('./modules/user/settings')
+
+const user = require('./modules/user')
 const contacts = require('./modules/contacts')
 const messages = require('./modules/messages')
 
@@ -28,21 +27,19 @@ app.post('/api', (req, res) => { user.checkToken(req, res) })
 
 app.post('/api/register', (req, res) => { user.registration(req, res) })
 
-app.post('/api/confirm', (req, res) => { user.confirmUser(req, res) })
+app.post('/api/confirm', (req, res) => { user.confirm(req, res) })
 
 app.post('/api/auth', (req, res) => { user.authorization(req, res) })
 
 app.post('/api/logout', (req, res) => { user.logout(req, res) })
 
-app.post('/api/findUser', (req, res) => { findUser(req, res) })
+app.post('/api/findUser', (req, res) => { user.findUser(req, res) })
 
-app.post('/api/settings', (req, res) => { userSettings(req, res) })
+app.post('/api/settings', (req, res) => { user.settings(req, res) })
 
 app.post('/api/addContact', (req, res) => { contacts.add(req, res) })
 
 app.post('/api/removeContact', (req, res) => { contacts.remove(req, res) })
-
-app.post('/api/getContacts', (req, res) => { contacts.get(req, res) })
 
 app.post('/api/sendMessage', (req, res) => { messages.send(req, res) })
 

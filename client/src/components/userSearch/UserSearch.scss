@@ -1,7 +1,7 @@
 @import '../../vars.scss';
 
 .users-search {
-  form {
+  &__form {
     height: 30px;
     text-align: right;
     position: relative;

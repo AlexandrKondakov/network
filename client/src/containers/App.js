@@ -7,7 +7,7 @@ import { Page404 } from '../components/404'
 import { Auth } from '../components/auth'
 import { api, sendAjax } from '../helpers'
 import { setInformer } from '../actions/CommonActions'
-import { setIsLoggedIn, setAvatarLink, setUserName, setToken, setId } from '../actions/UserActions'
+import { setIsLoggedIn, setAvatarLink, setUserName, setToken, setId, setContacts } from '../actions/UserActions'
 import './App.scss'
 
 class App extends Component {
@@ -59,6 +59,7 @@ class App extends Component {
       res.userData.name && this.props.userNameAction(res.userData.name)
       res.userData.id && this.props.userIdAction(res.userData.id)
       res.userData.avatarLink && this.props.avatarLinkAction(res.userData.avatarLink)
+      res.userData.contacts && this.props.setContactsAction(res.userData.contacts)
     }
   }
 
@@ -154,7 +155,6 @@ class App extends Component {
 }
 
 const mapStateToProps = store => ({user: store.user})
-
 const mapDispatchToProps = dispatch => ({
   isLoggedInAction: isLoggedIn => dispatch(setIsLoggedIn(isLoggedIn)),
   userNameAction: userName => dispatch(setUserName(userName)),
@@ -162,9 +162,7 @@ const mapDispatchToProps = dispatch => ({
   userIdAction: id => dispatch(setId(id)),
   avatarLinkAction: link => dispatch(setAvatarLink(link)),
   informerAction: text => dispatch(setInformer(text)),
+  setContactsAction: contacts => dispatch(setContacts(contacts))
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(App)
+export default connect(mapStateToProps, mapDispatchToProps)(App)

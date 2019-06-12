@@ -26,7 +26,11 @@ export class Auth extends React.Component {
 
     this.setState({emptyFields: false})
 
-    const fields = {email: spaceNormalize(email), pass: spaceNormalize(pass), name: spaceNormalize(name)}
+    const fields = {
+      email: spaceNormalize(email),
+      pass: spaceNormalize(pass),
+      name: spaceNormalize(name).toLowerCase()
+    }
 
     this.props.submitFunction(this.props.submitUrl, fields)
   }

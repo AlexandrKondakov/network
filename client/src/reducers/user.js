@@ -1,11 +1,20 @@
-import { SET_IS_LOGGED_IN, SET_USER_NAME, SET_TOKEN, SET_ID, SET_AVATAR_LINK } from '../actions/UserActions'
+import {
+  SET_IS_LOGGED_IN,
+  SET_USER_NAME,
+  SET_TOKEN,
+  SET_ID,
+  SET_AVATAR_LINK,
+  SET_CONTACTS
+} from '../actions/UserActions'
 
 const initialState = {
   isLoggedIn: false,
   token: '',
   name: '',
   id: '',
-  avatarLink: ''
+  avatarLink: '',
+  contacts: [],
+  needUpdateContacts: true,
 }
 
 export function userReducer(state = initialState, action) {
@@ -24,6 +33,9 @@ export function userReducer(state = initialState, action) {
 
     case SET_AVATAR_LINK:
       return { ...state, avatarLink: action.payload }
+
+    case SET_CONTACTS:
+      return { ...state, contacts: action.payload }
 
     default: return state
   }

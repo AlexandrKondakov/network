@@ -3,6 +3,7 @@ export const SET_USER_NAME = 'SET_USER_NAME'
 export const SET_TOKEN = 'SET_TOKEN'
 export const SET_ID = 'SET_ID'
 export const SET_AVATAR_LINK = 'SET_AVATAR_LINK'
+export const SET_CONTACTS = 'SET_CONTACTS'
 
 export function setIsLoggedIn(isLoggedIn) {
   return {
@@ -36,5 +37,12 @@ export function setAvatarLink(link) {
   return {
     type: SET_AVATAR_LINK,
     payload: link,
+  }
+}
+
+export function setContacts(contacts) {
+  return {
+    type: SET_CONTACTS,
+    payload: contacts,
   }
 }
