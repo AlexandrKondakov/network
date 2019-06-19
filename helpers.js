@@ -1,18 +1,25 @@
 const fs = require('fs')
 const path = require('path')
+const passport = require('passport')
+const UserModel = require('./dbModels/user')
+const JwtStrategy = require('passport-jwt').Strategy
+const { ExtractJwt } = require('passport-jwt')
+const { jwtKey } = require('./config')
+
+passport.use(new JwtStrategy({
+    jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('JWT'),
+    secretOrKey: jwtKey
+  },
+  (payload, done) => {
+    UserModel.findById(payload.id, (err, user) => err ? done(err) : done(null, user ? user : false) )
+  }
+))
 
 exports.emailRegExp = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/
 
 exports.latinRegExp = /^[A-Za-z0-9]+$/
 
-exports.commonError = 'Ошибка сервера, повторите позднее'
-
-exports.errorResponse = (res, text = exports.commonError) => { res.send({message: text, error: true}) }
-
-exports.getUserId = req => {
-  try { return req.headers.referer.split(`${req.headers.origin}/`)[1].split('/')[0] }
-  catch(e) { return '' }
-}
+exports.errorResponse = (res, text = 'Ошибка сервера, повторите позднее') => { res.send({message: text, error: true}) }
 
 exports.inputsValidate = (inputs, checkEmpty = true) => {
   let text = ''

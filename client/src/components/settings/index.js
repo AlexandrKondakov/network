@@ -32,7 +32,9 @@ class Settings extends React.Component {
 
     const { userData } = this.state
 
-    if (userData.pass !== this.state.passConfirm) { return }
+    if (userData.pass !== this.state.passConfirm) {
+      return this.props.informerAction({text: 'Вы ввели два разных пароля', isError: true})
+    }
 
     const payload = new FormData()
 
@@ -87,14 +89,14 @@ class Settings extends React.Component {
           <label>
             <span>Новый пароль</span>
             <input
-              maxLength="30" autoComplete="off" className="ui-input"
+              type="password" maxLength="30" autoComplete="off" className="ui-input"
               onChange={(e) => { this.changeUserDataProp('pass', e) }}
             />
           </label>
           <label>
             <span>Повторите пароль</span>
             <input
-              maxLength="30" autoComplete="off" className="ui-input"
+              type="password" maxLength="30" autoComplete="off" className="ui-input"
               onChange={(e) => { this.changeUserDataProp('passConfirm', e) }}
             />
           </label>

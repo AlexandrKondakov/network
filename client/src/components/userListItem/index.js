@@ -4,6 +4,7 @@ import './UserListItem.scss'
 import emptyAva from '../../img/emptyAva.png'
 import { sendAjax } from '../../helpers'
 import { setInformer } from '../../actions/CommonActions'
+import { addContact, removeContact } from '../../actions/UserActions'
 
 const UserListItem = props => {
   const { id, name, avatarLink } = props.user
@@ -13,7 +14,9 @@ const UserListItem = props => {
   useEffect(() => {
     const queryElem = document.querySelector(`[data-id="${id}"]`)
 
-    if (queryElem.classList.contains('user-list-item_show')) queryElem.classList.remove('user-list-item_show')
+    if (queryElem && queryElem.classList.contains('user-list-item_show')) {
+      queryElem.classList.remove('user-list-item_show')
+    }
   })
 
   const showUser = (elem) => {
@@ -29,6 +32,8 @@ const UserListItem = props => {
     const body = await response.json()
 
     if (body.error) return props.informerAction({text: body.message, isError: true})
+
+    props.isRemoveUser ? props.removeContactAction(id) : props.addContactAction({id, name, avatarLink})
 
     props.informerAction({text: body.message, isError: false})
   }
@@ -66,7 +71,9 @@ const UserListItem = props => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  informerAction: text => dispatch(setInformer(text))
+  informerAction: text => dispatch(setInformer(text)),
+  addContactAction: contact => dispatch(addContact(contact)),
+  removeContactAction: contact => dispatch(removeContact(contact))
 })
 
 export default connect(null, mapDispatchToProps)(UserListItem)

@@ -6,8 +6,15 @@ import UserPage from '../components/userPage'
 import { Page404 } from '../components/404'
 import { Auth } from '../components/auth'
 import { api, sendAjax } from '../helpers'
-import { setInformer } from '../actions/CommonActions'
-import { setIsLoggedIn, setAvatarLink, setUserName, setToken, setId, setContacts } from '../actions/UserActions'
+import { setInformer, setContactsLoadingState } from '../actions/CommonActions'
+import {
+  setIsLoggedIn,
+  setAvatarLink,
+  setUserName,
+  setToken,
+  setId,
+  setContacts,
+} from '../actions/UserActions'
 import './App.scss'
 
 class App extends Component {
@@ -31,13 +38,12 @@ class App extends Component {
           .then(res => {
             const path = window.location.pathname, id = path.split('/confirm/')[1]
 
-            this.checkResponseSetProps(res)
+            this.setUserStore(res)
             this.props.isLoggedInAction(res.isLoggedIn)
             this.setState({pageLoadingState: false})
 
             if (path.includes('/confirm/') && id.length > 5 && id.length < 50) this.confirmNewUser(id)
           })
-          .catch(err => console.log(err))
       })
   }
 
@@ -46,7 +52,6 @@ class App extends Component {
     const body = await response.json()
 
     if (body.error) return this.props.informerAction({text: body.message, isError: true})
-
     this.props.informerAction({text: 'Вы успешно зарегистрировались', isError: false})
   }
 
@@ -54,28 +59,30 @@ class App extends Component {
      if (localStorage.getItem('token')) await this.props.tokenAction(localStorage.getItem('token'))
   }
 
-  checkResponseSetProps(res) {
+  setUserStore(res) {
     if (res.userData) {
       res.userData.name && this.props.userNameAction(res.userData.name)
       res.userData.id && this.props.userIdAction(res.userData.id)
       res.userData.avatarLink && this.props.avatarLinkAction(res.userData.avatarLink)
-      res.userData.contacts && this.props.setContactsAction(res.userData.contacts)
+    }
+    if (res.isLoggedIn) {
+      this.getContacts()
+        .then(body => {
+          if (body.error) return this.props.informerAction({text: body.message, isError: true})
+          this.props.setContactsAction(body.contacts)
+          this.props.setContactsLoadingState(false)
+        })
     }
   }
 
+  getContacts = async () => {
+    const response = await sendAjax('getContacts')
+    return await response.json()
+  }
+
   callMainApi = async () => {
-    const response = await fetch(api, {
-      method: 'POST',
-      headers: new Headers({
-        'Content-Type': 'application/json',
-        'Authorization': this.props.user.token
-      })
-    })
-
-    const body = await response.json()
-
-    if (response.status !== 200) throw Error(body.message)
-    return body
+    const response = await sendAjax('')
+    return await response.json()
   }
 
   submitUserData = async (url, payload) => {
@@ -87,12 +94,12 @@ class App extends Component {
     this.setState({disableSubmitButtons: false})
     if (body.error) return this.props.informerAction({text: body.message, isError: true})
 
-    this.checkResponseSetProps(body)
-
     if (body.token) {
       localStorage.setItem('token', body.token)
       this.props.tokenAction(body.token)
     }
+
+    this.setUserStore(body)
 
     this.props.isLoggedInAction(body.isLoggedIn ? body.isLoggedIn : false)
     this.props.informerAction({text: body.message, isError: false})
@@ -162,7 +169,8 @@ const mapDispatchToProps = dispatch => ({
   userIdAction: id => dispatch(setId(id)),
   avatarLinkAction: link => dispatch(setAvatarLink(link)),
   informerAction: text => dispatch(setInformer(text)),
-  setContactsAction: contacts => dispatch(setContacts(contacts))
+  setContactsAction: contacts => dispatch(setContacts(contacts)),
+  setContactsLoadingState: isLoading => dispatch(setContactsLoadingState(isLoading))
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(App)

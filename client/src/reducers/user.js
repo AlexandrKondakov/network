@@ -4,7 +4,9 @@ import {
   SET_TOKEN,
   SET_ID,
   SET_AVATAR_LINK,
-  SET_CONTACTS
+  SET_CONTACTS,
+  ADD_CONTACT,
+  REMOVE_CONTACT
 } from '../actions/UserActions'
 
 const initialState = {
@@ -13,8 +15,7 @@ const initialState = {
   name: '',
   id: '',
   avatarLink: '',
-  contacts: [],
-  needUpdateContacts: true,
+  contacts: []
 }
 
 export function userReducer(state = initialState, action) {
@@ -36,6 +37,15 @@ export function userReducer(state = initialState, action) {
 
     case SET_CONTACTS:
       return { ...state, contacts: action.payload }
+
+    case ADD_CONTACT:
+      state.contacts.push(action.payload)
+      return { ...state }
+
+    case REMOVE_CONTACT:
+      const contact = state.contacts.find(contact => contact.id === action.payload)
+      if (contact) state.contacts.splice(state.contacts.indexOf(contact), 1)
+      return { ...state }
 
     default: return state
   }

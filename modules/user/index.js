@@ -1,10 +1,9 @@
 const user = {
   findUser: require('./findUser'),
   settings: require('./settings'),
-  logout: require('./logout'),
   registration: require('./registration'),
   confirm: require('./confirm'),
-  checkToken: require('./checkToken'),
+  authentication: require('./authentication'),
   authorization: require('./authorization')
 }
 

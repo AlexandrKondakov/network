@@ -2,12 +2,12 @@ const multer  = require('multer')
 const fs = require('fs')
 const crypto = require('crypto')
 const UserModel = require('../../dbModels/user')
+const passport = require('passport')
 const {
   errorResponse,
   inputsValidate,
   emailRegExp,
   latinRegExp,
-  getUserId,
   checkAndCreateDirectory
 } = require('../../helpers')
 
@@ -15,7 +15,7 @@ let avatarPath = '', avatarName = ''
 
 const checkEmailUnique = email => {
   return UserModel.findOne({ email }, (err, user) => {
-    if (err) return console.log(err)
+    if (err) return true
 
     return !!user
   })
@@ -73,21 +73,19 @@ const upload = multer({
 }).single('ava')
 
 const settings = (req, res) => {
-  const id = getUserId(req)
+  passport.authenticate('jwt', (error, user) => {
+    if (error || !user) return errorResponse(res)
 
-  avatarPath = `./static/avatars/${id}`
+    avatarPath = `./static/avatars/${user._id}`
 
-  upload(req, res, err => {
-    if (err) return errorResponse(res, 'Ошибка при загрузке изображения')
+    upload(req, res, async err => {
+      if (err) return errorResponse(res, 'Ошибка при загрузке изображения')
 
-    if (req.error) return errorResponse(res, req.error)
+      if (req.error) return errorResponse(res, req.error)
 
-    let userChanges = avatarName ? true : Object.values(req.body).some(prop => !!prop)
+      let userChanges = avatarName ? true : Object.values(req.body).some(prop => !!prop)
 
-    if (userChanges) {
-      UserModel.findById(id, async (err, user) => {
-        if (err || !user) return errorResponse(res)
-
+      if (userChanges) {
         const userData = {name: req.body.name ? req.body.name : ''}
 
         const setUserPassAndSalt = (user, pass) => {
@@ -103,7 +101,7 @@ const settings = (req, res) => {
         }
 
         if (avatarName) {
-          user.avatarLink = `${req.protocol}://${req.headers.host}/avatars/${id}/${avatarName}`
+          user.avatarLink = `${req.protocol}://${req.headers.host}/avatars/${user._id}/${avatarName}`
           userData.avatarLink = user.avatarLink
         }
         else {
@@ -128,8 +126,8 @@ const settings = (req, res) => {
           }
 
           const checkOldAvatars = () => {
-            fs.readdir(avatarPath, (err, files) => {
-              if (err) return errorResponse(res)
+            fs.readdir(avatarPath, (e, files) => {
+              if (e) return errorResponse(res)
 
               if (files.length > 1) removeOldAvatars(files)
 
@@ -139,13 +137,13 @@ const settings = (req, res) => {
             })
           }
 
-          if (avatarName) return checkOldAvatars()
+          if (avatarName) checkOldAvatars()
           else res.send({message: 'Данные успешно обновлены', userData})
         })
-      })
-    }
-    else errorResponse(res, 'Заполните данные')
-  })
+      }
+      else errorResponse(res, 'Заполните данные')
+    })
+  })(req, res)
 }
 
 module.exports = settings

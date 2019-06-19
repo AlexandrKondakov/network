@@ -3,11 +3,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const https = require('https')
 const mongoose = require('mongoose')
+const setRoutes = require('./routes')
 const { dbNetwork, siteName } = require('./config')
-
-const user = require('./modules/user')
-const contacts = require('./modules/contacts')
-const messages = require('./modules/messages')
 
 const app = express()
 
@@ -23,26 +20,7 @@ app.use((req, res, next) => {
   next()
 })
 
-app.post('/api', (req, res) => { user.checkToken(req, res) })
-
-app.post('/api/register', (req, res) => { user.registration(req, res) })
-
-app.post('/api/confirm', (req, res) => { user.confirm(req, res) })
-
-app.post('/api/auth', (req, res) => { user.authorization(req, res) })
-
-app.post('/api/logout', (req, res) => { user.logout(req, res) })
-
-app.post('/api/findUser', (req, res) => { user.findUser(req, res) })
-
-app.post('/api/settings', (req, res) => { user.settings(req, res) })
-
-app.post('/api/addContact', (req, res) => { contacts.add(req, res) })
-
-app.post('/api/removeContact', (req, res) => { contacts.remove(req, res) })
-
-app.post('/api/sendMessage', (req, res) => { messages.send(req, res) })
-
+setRoutes(app)
 
 app.listen(port, err => { console.log(err ? `Error: ${err}` : `Listening on port: ${port}`) })
 

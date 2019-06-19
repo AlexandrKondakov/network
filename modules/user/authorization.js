@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const crypto = require('crypto')
-const contacts = require('../contacts')
 const { jwtKey } = require('../../config')
 const { fieldsForPassport, errorResponse, inputsValidate } = require('../../helpers')
 
@@ -33,19 +32,15 @@ const authorization = (req, res) => {
 
 		const token = jwt.sign({id: user._id, email: user.email}, jwtKey)
 
-		contacts.get(user.contacts)
-			.then(contacts => {
-				res.send({
-					userData: {
-						name: user.name,
-						id: user._id,
-						avatarLink: user.avatarLink,
-						contacts
-					},
-					token: `JWT ${token}`,
-					isLoggedIn: true
-				})
-			})
+		res.send({
+			userData: {
+				name: user.name,
+				id: user._id,
+				avatarLink: user.avatarLink
+			},
+			token: `JWT ${token}`,
+			isLoggedIn: true
+		})
 	})(req, res)
 }
 

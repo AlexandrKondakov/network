@@ -19,14 +19,8 @@ class Header extends React.Component {
 		document.querySelector('title').innerText = user.isLoggedIn ? user.name : appName
 	}
 
-	logout = async () => {
-		const response = await sendAjax('logout')
-		const body = await response.json()
-
-		if (body.error) return this.props.informerAction({text: body.message, isError: true})
-
+	logout = () => {
 		if (localStorage.getItem('token')) localStorage.removeItem('token')
-
 		this.props.isLoggedInAction(false)
 		this.toggleUserList()
 	}

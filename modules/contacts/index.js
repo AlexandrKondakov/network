@@ -1,10 +1,11 @@
 const UserModel = require('../../dbModels/user')
-const { errorResponse, getUserId } = require('../../helpers')
+const passport = require('passport')
+const { errorResponse } = require('../../helpers')
 
 exports.add = (req, res) => {
   if (!req.body.user) { return }
 
-  UserModel.findById(getUserId(req), (error, user) => {
+  passport.authenticate('jwt', (error, user) => {
     if (error || !user) return errorResponse(res)
 
     if (user.contacts.some(id => id === req.body.user)) {
@@ -19,28 +20,44 @@ exports.add = (req, res) => {
         ? errorResponse(res)
         : res.send({message: `Пользователь ${userForContacts.name} добавлен в контакты`})})
     })
-  })
+  })(req, res)
 }
 
-exports.get = async idList => {
-  if (!idList.length) return []
+exports.get = (req, res) => {
+  passport.authenticate('jwt', async (err, user) => {
+    if (err || !user) return errorResponse(res)
 
-  const contactList = []
+    const contacts = []
 
-  for (let i = 0, len = idList.length; i < len; i++) {
-    await UserModel.findById(idList[i], (err, user) => {
-      if (err || !user) { return }
+    if (!user.contacts.length) return res.send({contacts})
 
-      contactList.push({
-        id: user._id,
-        name: user.name,
-        avatarLink: user.avatarLink
+    for (let i = 0, len = user.contacts.length; i < len; i++) {
+      await UserModel.findById(user.contacts[i], (err, userFromContacts) => {
+        if (err) return errorResponse(res)
+        if (userFromContacts) {
+          contacts.push({
+            name: userFromContacts.name,
+            avatarLink: userFromContacts.avatarLink,
+            id: userFromContacts._id
+          })
+        }
       })
-    })
-  }
-  return contactList
+    }
+
+    res.send({contacts})
+  })(req, res)
 }
 
 exports.remove = (req, res) => {
+  if (!req.body.user) { return }
 
+  passport.authenticate('jwt', (err, user) => {
+    if (err || !user) return errorResponse(res)
+
+    if (user.contacts.find(contact => contact === req.body.user)) {
+      user.contacts.splice(user.contacts.indexOf(req.body.user), 1)
+    }
+
+    user.save(e => {e ? errorResponse(res) : res.send({message: `Пользователь удален из контактов`})})
+  })(req, res)
 }
