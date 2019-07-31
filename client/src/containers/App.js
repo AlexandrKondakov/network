@@ -5,7 +5,7 @@ import Header from '../components/header'
 import UserPage from '../components/userPage'
 import { Page404 } from '../components/404'
 import { Auth } from '../components/auth'
-import { api, sendAjax } from '../helpers'
+import { sendAjax, socket } from '../helpers'
 import { setInformer, setContactsLoadingState } from '../actions/CommonActions'
 import {
   setIsLoggedIn,
@@ -44,6 +44,7 @@ class App extends Component {
 
             if (path.includes('/confirm/') && id.length > 5 && id.length < 50) this.confirmNewUser(id)
           })
+          .then(() => { socket.emit('join', {id: this.props.user.id}) })
       })
   }
 
@@ -101,7 +102,7 @@ class App extends Component {
 
     this.setUserStore(body)
 
-    this.props.isLoggedInAction(body.isLoggedIn ? body.isLoggedIn : false)
+    this.props.isLoggedInAction(body.isLoggedIn)
     this.props.informerAction({text: body.message, isError: false})
   }
 

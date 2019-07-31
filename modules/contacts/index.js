@@ -29,21 +29,20 @@ exports.get = (req, res) => {
 
     const contacts = []
 
-    if (!user.contacts.length) return res.send({contacts})
-
-    for (let i = 0, len = user.contacts.length; i < len; i++) {
-      await UserModel.findById(user.contacts[i], (err, userFromContacts) => {
-        if (err) return errorResponse(res)
-        if (userFromContacts) {
-          contacts.push({
-            name: userFromContacts.name,
-            avatarLink: userFromContacts.avatarLink,
-            id: userFromContacts._id
-          })
-        }
-      })
+    if (user.contacts.length) {
+      for await (const contact of user.contacts) {
+        await UserModel.findById(contact, (err, userFromContacts) => {
+          if (err) return errorResponse(res)
+          if (userFromContacts) {
+            contacts.push({
+              name: userFromContacts.name,
+              avatarLink: userFromContacts.avatarLink,
+              id: userFromContacts._id
+            })
+          }
+        })
+      }
     }
-
     res.send({contacts})
   })(req, res)
 }

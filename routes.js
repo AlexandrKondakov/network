@@ -21,7 +21,9 @@ const routes = app => {
 
   app.post('/api/getContacts', (req, res) => { contacts.get(req, res) })
 
-  app.post('/api/sendMessage', (req, res) => { messages.send(req, res) })
+  app.post('/api/getChats', (req, res) => { messages.getChats(req, res) })
+
+  app.post('/api/getMessages', (req, res) => { messages.getMessages(req, res) })
 }
 
 module.exports = routes

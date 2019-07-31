@@ -39,6 +39,11 @@ ol, ul { list-style: none; }
   	cursor: pointer;
   }
 
+	a {
+		text-decoration: none;
+		color: $font-black;
+	}
+
 	.ui-input{
 		border: 1px solid $form-green;
 		height: 30px;

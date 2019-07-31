@@ -4,7 +4,8 @@
   display: flex;
   align-items: center;
   border-bottom: 1px solid $border-grey;
-  padding: 5px 0;
+  margin-top: 5px;
+  padding-bottom: 5px;
   cursor: pointer;
   justify-content: flex-end;
   position: relative;
@@ -25,6 +26,7 @@
     }
   }
   &__name {
+    text-transform: capitalize;
     @media (max-width: $breakpoint-big) {
       font-size: 14px;
     }

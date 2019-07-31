@@ -1,6 +1,11 @@
 import { store } from './store/configureStore'
+import openSocket from 'socket.io-client'
 
-export const api = 'http://localhost:5000/api'
+export const rootUrl = 'http://localhost:5000'
+
+export const socket = openSocket(rootUrl)
+
+export const api = `${rootUrl}/api`
 
 export const appName = 'communicate'
 
@@ -19,3 +24,20 @@ export const sendAjax = (path, body = {}, isFormData = false, method = 'POST') =
   }
   return fetch(`${api}/${path}`, payload)
 }
+
+export const formatDate = date => {
+  const digit = '2-digit'
+  try {
+    return new Date(date).toLocaleString('ru-RU', {
+      year: digit,
+      month: digit,
+      day: digit,
+      hour: digit,
+      minute: digit
+    })
+  }
+  catch { return '' }
+}
+
+export const sendSocketMessage = (fromId, toId, msg) => { socket.emit('subscribeToMessage', fromId, toId, msg) }
+

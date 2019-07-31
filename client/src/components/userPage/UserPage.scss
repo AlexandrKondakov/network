@@ -27,13 +27,9 @@
         margin-bottom: 8px;
       }
 
-      a {
-        text-decoration: none;
-        color: $font-black;
-      }
-
       .active-link {
         color: $error-color;
+        pointer-events: none;
       }
     }
   }

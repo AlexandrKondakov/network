@@ -1,6 +1,6 @@
 import React from 'react'
 import './Header.scss'
-import { appName, sendAjax } from '../../helpers'
+import { appName } from '../../helpers'
 import { connect } from 'react-redux'
 import { setIsLoggedIn } from '../../actions/UserActions'
 import { setInformer } from '../../actions/CommonActions'
@@ -40,7 +40,7 @@ class Header extends React.Component {
 
 	getInformerClassList = () => {
 		const { text, isError } = this.props.common.informer
-		return `${text && 'informer_show'} ${isError ? 'informer_error' : ''} informer`
+		return `${text && 'informer_show'} ${isError && 'informer_error'} informer`
 	}
 
 	render() {

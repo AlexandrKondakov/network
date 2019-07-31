@@ -1,0 +1,48 @@
+@import '../../vars.scss';
+
+.messages {
+  .chat {
+    &-link {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid $border-grey;
+      margin-top: 5px;
+      padding-bottom: 5px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    &__ava {
+      width: 60px;
+      height: 60px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    &__date {
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-size: $font-size-small;
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      max-width: 650px;
+      margin-left: 20px;
+
+      &-message {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      &-name {
+        text-transform: capitalize;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+    }
+  }
+}

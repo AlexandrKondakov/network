@@ -119,7 +119,7 @@ const settings = (req, res) => {
             avatars.forEach(avatar => {
               if (avatar !== avatarName) {
                 fs.unlink(`${avatarPath}/${avatar}`, err => {
-                  if (err) console.log(`Ошибка при удалении файлов: ${err}`)
+                  if (err) console.log('logger')
                 })
               }
             })

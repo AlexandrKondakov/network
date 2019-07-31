@@ -17,7 +17,6 @@ passport.use('register', new LocalStrategy(fieldsForPassport,
     const salt = crypto.randomBytes(128).toString('base64')
 
     const newUser = new UserModel({
-      unique: true,
       email,
       name: req.body.name,
       contacts: [],

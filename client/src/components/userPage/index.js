@@ -3,7 +3,7 @@ import { Route, NavLink } from 'react-router-dom'
 import { connect } from 'react-redux'
 import Settings from '../settings'
 import UserSearch from '../userSearch'
-import { Messages } from '../messages'
+import Messages from '../messages'
 import Contacts from '../contacts'
 import emptyAva from '../../img/emptyAva.png'
 import './UserPage.scss'
@@ -28,14 +28,14 @@ const UserPage = props => {
       <div className="user-page__wrap">
         <div
           className="user-page__ava"
-          style={{backgroundImage: `url(${avatarLink ? avatarLink : emptyAva})`}}
+          style={{backgroundImage: `url(${avatarLink || emptyAva})`}}
         />
         <div className="user-page-content">
           <div className="user-page-content__inner">
-            <Route path={`/${id}/messages`} render={() => <Messages /> }/>
-            <Route path={`/${id}/contacts`} render={() => <Contacts /> }/>
-            <Route path={`/${id}/search`} render={() => <UserSearch /> }/>
-            <Route path={`/${id}/settings`} render={() => <Settings /> }/>
+            <Route path={`/${id}/messages`} component={ Messages }/>
+            <Route path={`/${id}/contacts`} component={ Contacts }/>
+            <Route path={`/${id}/search`} component={ UserSearch }/>
+            <Route path={`/${id}/settings`} component={ Settings }/>
           </div>
         </div>
       </div>
