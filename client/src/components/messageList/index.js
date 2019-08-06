@@ -27,10 +27,7 @@ class MessageList extends React.Component {
       })
   }
 
-  componentWillUnmount() {
-    // сокеты работают норм, осталось сбрасывать подписку на событие при анмаунте компонента
-    // socket.off('newMessage')
-  }
+
 
   sendMessage = async e => {
     e.preventDefault()
