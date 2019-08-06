@@ -17,32 +17,44 @@ exports.subscribeToMessages = client => {
       text: message
     }
 
-    const updateChatRoom = (chatId, messageId) => {
-      ChatRoomsModel.findById(chatId, (err, userChat) => {
-        if (err || !userChat) return console.log('logger')
-
-        userChat.lastMessageId = messageId
-        userChat.save()
-      })
-    }
-
-    const createUserChat = chatId => {
-      new UserChatModel({userId: fromId, partnerId: toId, chatId}).save()
-      new UserChatModel({userId: toId, partnerId: fromId, chatId}).save()
-    }
-
     const saveNewMessage = userChatId => {
       newMessage.chatId = userChatId
+
+      const updateChatRoom = (chatId, messageId) => {
+        ChatRoomsModel.findById(chatId, (err, userChat) => {
+          if (err || !userChat) return console.log('logger')
+
+          userChat.lastMessageId = messageId
+          userChat.save()
+        })
+      }
 
       new MessageModel(newMessage).save()
         .then(() => {
           updateChatRoom(userChatId, newMessage._id)
-          client.in(toId).emit('newMessage', {fromId, text: message, chatId: userChatId, date: newMessage.date})
+
+          UserModel.findById(fromId, (err, user) => {
+            if (err || !user) return console.log('logger')
+
+            client.broadcast.to(toId).emit('newMessage', {
+              senderName: user.name,
+              senderAvatar: user.avatarLink,
+              fromId,
+              text: message,
+              chatId: userChatId,
+              date: newMessage.date
+            })
+          })
         })
         .catch(() => { console.log('logger') })
     }
 
     const createChatRoom = () => {
+      const createUserChat = chatId => {
+        new UserChatModel({userId: fromId, partnerId: toId, chatId}).save()
+        new UserChatModel({userId: toId, partnerId: fromId, chatId}).save()
+      }
+
       new ChatRoomsModel({lastMessageId: newMessage._id}).save()
         .then(chatRoom => {
           createUserChat(chatRoom._id)

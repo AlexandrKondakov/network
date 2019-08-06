@@ -23,56 +23,73 @@ class Messages extends React.Component {
       .then(body => {
         if (body.error) return this.props.informerAction({text: body.message, isError: true})
         if (!body.userChats.length) this.setState({noMessages: true})
-        this.setState({chats: body.userChats})
+        this.setState({chats: body.userChats.sort((a, b) => +b.date - +a.date )})
 
-        socket.on('newMessage', mes => { this.updateLastChatMessage(mes) })
+        socket.on('newMessage', mes => { this.updateChat(mes) })
 
-        if (this.state.chatId) {
+        if (this.state.chatId && this.state.chats.length) {
           const { partnerName, partnerId } = body.userChats.find(chat => chat.chatId === this.state.chatId)
           this.setState({partnerName, partnerId})
         }
       })
   }
+Z
 
-  updateLastChatMessage = ({ chatId = '', fromId = '', message = '', date = 0 } = {}) => {
+  updateChat = ({
+      senderName = '',
+      senderAvatar = '',
+      chatId = '',
+      fromId = '',
+      text = '',
+      date = Date.now()
+    } = {}) => {
     const { chats } = this.state
-    const mutableChat = {chatId, messageFromId: fromId, text: message, date}
+    const mutableChat = {
+      chatId,
+      partnerId: fromId,
+      text,
+      date,
+      partnerName: senderName,
+      partnerAvatar: senderAvatar
+    }
 
     if (chats.length) {
-      chats.some((chat, idx)  => {
-        if (chat.chatId === chatId) {
-          mutableChat.partnerName = chat.partnerName
-          mutableChat.partnerAvatar = chat.partnerAvatar
-          chats.splice(idx, 1)
-        }
-      })
+      const chatForRemove = chats.find(chat => chat.chatId === chatId)
+
+      if (chatForRemove) chats.splice(chats.indexOf(chatForRemove), 1)
     }
 
     this.setState({chats: [mutableChat, ...chats], noMessages: false})
   }
 
-  setChatState = ({chatId, partnerName, partnerId} = {}) => {
-    this.setState({chatId, partnerName, partnerId})
+  setChatState = chat => {
+    this.setState({
+      chatId: chat.chatId,
+      partnerName: chat.partnerName,
+      partnerId: chat.partnerId
+    })
   }
 
   render() {
     const { id } = this.props.user
 
-    const chats = this.state.chats.map((chat, idx) =>
-      <li className="chat" key={idx} onClick={() => { this.setChatState(chat) }}>
-        <NavLink className="chat-link" to={`/${id}/messages/${chat.chatId}`}>
-          <span className="chat__ava" style={{backgroundImage: `url(${chat.partnerAvatar || emptyAva})`}}/>
-          <span className="chat__content">
-            <span className="chat__content-name">{chat.partnerName}</span>
-            <span className="chat__content-message">
-              {chat.messageFromId === this.props.user.id && 'Вы: '}
-              {chat.text}
+    const chats = this.state.chats.map((chat, idx) => {
+      return (
+        <li className="chat" key={idx} onClick={() => { this.setChatState(chat) }}>
+          <NavLink className="chat-link" to={`/${id}/messages/${chat.chatId}`}>
+            <span className="chat__ava" style={{backgroundImage: `url(${chat.partnerAvatar || emptyAva})`}} />
+            <span className="chat__content">
+              <span className="chat__content-name">{chat.partnerName}</span>
+              <span className="chat__content-message">
+                {chat.messageFromId === this.props.user.id && 'Вы: '}
+                {chat.text}
+              </span>
             </span>
-          </span>
-          <span className="chat__date">{ formatDate(chat.date) }</span>
-        </NavLink>
-      </li>
-    )
+            <span className="chat__date">{ formatDate(chat.date) }</span>
+          </NavLink>
+        </li>
+      )
+    })
 
     const { chatId, partnerName, partnerId } = this.state
 

@@ -14,15 +14,22 @@ class MessageList extends React.Component {
   }
 
   componentDidMount() {
-    sendAjax('getMessages', {chatId: this.props.chat.chatId})
+    const { chatId, partnerId } = this.props.chat
+
+    sendAjax('getMessages', {chatId})
       .then(res => res.json() )
       .then(body => {
         if (body.error) return this.props.informerAction({text: body.message, isError: true})
-        this.setState({messages: body.messages.reverse()})
+        this.setState({messages: body.messages.sort((a, b) =>  b.date - a.date )})
         socket.on('newMessage', mes => {
-          this.setState(state => ({ messages: [mes, ...state.messages]}))
+          if (mes.fromId === partnerId) this.setState(state => ({ messages: [mes, ...state.messages]}))
         })
       })
+  }
+
+  componentWillUnmount() {
+    // сокеты работают норм, осталось сбрасывать подписку на событие при анмаунте компонента
+    // socket.off('newMessage')
   }
 
   sendMessage = async e => {
